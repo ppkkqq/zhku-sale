@@ -1,0 +1,405 @@
+$mainColor = #1890ff
+$textColor = #1A1A1A
+$bodyWidth = 1200px
+@import "./mixin.styl"
+
+body {
+  margin: 0;
+  font-family: "Helvetica Neue For Number", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #222;
+  background-color: #F5F5F5;
+}
+
+html, body, #__nuxt, #__layout, #app-main {
+  height: 100%;
+}
+
+*, *:before, *:after {
+  box-sizing: border-box;
+  margin: 0;
+  padding 0;
+}
+
+a {
+  color: $mainColor;
+  background-color: transparent;
+  text-decoration: none;
+  outline: none;
+  cursor: pointer
+
+  &:hover {
+    color: #40a9ff;
+  }
+}
+
+li {
+  list-style: none;
+}
+
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 30px white inset;
+}
+
+.tooltip-label .el-tooltip {
+  float right
+  transform translateY(10px)
+}
+
+.data-table-footer {
+  // data-table 底部复用样式
+  margin-top 24px
+  text-align right
+}
+
+.container {
+  width $bodyWidth
+  margin 0 auto
+}
+
+.bgf {
+  background #fff
+}
+
+.text-center {
+  text-align center
+}
+
+.nuxt-link-exact-active {
+  color $primary-start !important
+}
+
+.page-wrap {
+  .el-pagination {
+    .number, button {
+      border 1px solid #ccc
+      margin 0 4px
+      padding 0 6px
+      &.active {
+        color #FC0F3D
+        border none
+      }
+    }
+    .el-pager li.active + li {
+      border 1px solid #ccc
+    }
+  }
+}
+
+.c {
+  &-g {
+    color: $green;
+  }
+  &-r {
+    color: $red;
+  }
+  &-b {
+    color: $blue;
+  }
+  &-o {
+    color: $orange;
+  }
+}
+
+.safety {
+  .main {
+    width 1200px
+    margin 0 auto
+    padding-top: 20px
+    display flex
+    margin-bottom 80px
+    .content {
+      width: 1000px
+      margin-left: 20px
+    }
+  }
+  &__container {
+    background-color #fff
+    padding: 0 30px
+  }
+  &__title {
+    color: $textColor
+    font-size: 18px
+    font-weight: bold
+    text-align: center
+  }
+  &__steps {
+    width: 700px
+    margin: 24px auto
+    .el-steps {
+      padding: 0;
+    }
+    .el-step {
+      flex-basis: unset !important
+      width: 33.333%
+      &:last-child {
+        border-right: 1px solid $bdGrey;
+        .el-step__title.is-process::after {
+          border-left none;
+        }
+      }
+      &:first-child {
+        border-left: 1px solid $bdGrey;
+        .el-step__title.is-success {
+          // border-right none
+          // ::after {
+          //   display none
+          // }
+          & + .el-step__arrow {
+            display: block !important;
+            top: 9px;
+            right: -4px;
+            position: relative;
+            &::before,
+            &::after {
+              background: $green !important;
+            }
+          }
+        }
+      }
+      &__head {
+        display: none
+      }
+      &__title {
+        width: 100%
+        max-width: none !important
+        line-height: 36px !important
+        border-top: 1px solid $bdGrey
+        border-bottom: 1px solid $bdGrey
+        &.is-wait {
+          background-color $bgGrey
+          color $textGrey
+        }
+        &.is-success,
+        &.is-process {
+          position: relative
+          &::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-top: 18px solid transparent;
+            border-bottom: 18px solid transparent;
+            position: absolute;
+            right: -12px;
+            top: 0;
+            z-index: 1
+          }
+          & + .el-step__arrow {
+            display: none !important
+          }
+        }
+        &.is-success {
+          background-color: #fff
+          border: 1px solid $green
+          &::after {
+            border-left: 12px solid #fff;
+          }
+        }
+        &.is-process {
+          background-color: $green
+          color: #fff
+          border: 1px solid $green
+          &::after {
+            border-left: 12px solid $green;
+          }
+        }
+      }
+      &__arrow {
+        &::before,
+        &::after {
+          z-index: 1;
+          height: 20px !important
+          background: $bdGrey !important
+        }
+        &::before {
+          transform: rotate(-30deg) translateY(-8px) !important
+        }
+        &::after {
+          transform: rotate(30deg) translateY(8px) !important
+        }
+      }
+      &__main {
+        text-align: center
+      }
+    }
+  }
+  &__step {
+    height: 400px;
+    background-color: #fff;
+    border: 1px solid $bdGrey
+    border-top: none
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  &__form {
+    width: 400px;
+    .el-input__inner {
+      background-color: #fff;
+    }
+    .el-input-group--append.override {
+      position relative
+      .el-input-group__append {
+        background-color: transparent;
+        border: none;
+        font-size: 16px
+        position absolute
+        top 50%
+        transform translateY(-50%)
+        right 12px
+        &:hover {
+          color: $textColor
+        }
+      }
+      .el-input__inner {
+        // border-right: none;
+        width: 100%
+      }
+    }
+    .el-input > .el-input__inner,
+    .el-button {
+      height: 50px
+    }
+    & > div:not(:last-child) {
+      margin-bottom: 20px;
+    }
+  }
+
+  &__success-tips {
+    display flex
+    flex-direction: column
+    justify-content: center
+    align-items: center
+    i {
+      font-size 30px
+      font-weight bold
+      margin-bottom: 12px
+    }
+    span {
+      font-size 17px
+      font-weight: bold
+    }
+  }
+}
+
+.order-tabs
+  border: 1px solid $bdGrey
+  .el-tabs
+    &__nav
+      width: 100%
+      display: flex
+      border-top: none
+    &__item
+      flex: 1
+      text-align: center
+      background-color: $bgGrey
+      color: $textGrey
+      font-weight: normal
+      &.is-active
+        background-color: #fff
+        color: $textColor
+      &:hover
+        color: $textColor
+    &__content
+      .el-tab-pane
+        min-height: 340px
+        padding: 20px 18%
+        &.flex
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+  .button-area
+    text-align: center
+    .el-button
+      width: 160px
+
+.table-container
+  background-color: #fff
+  & + .table-container
+    margin-top: 20px
+  &__title
+    padding: 16px
+    border-bottom: 1px solid $bdGrey
+    h4
+      font-size: 16px
+      margin: 0
+      display inline-block
+    &__desc
+      font-size: 14px
+      padding-left: 16px
+      color: $textGrey
+    &__button
+      padding-top: 8px !important
+      padding-bottom: 8px !important
+      background-color: $bgGrey !important
+      float: right
+  &__body
+    padding: 16px
+    .el-table
+      td,
+      th.is-leaf
+        border-color: $bdGrey
+        text-align: center
+      th.is-leaf
+        background-color: $bgGrey
+
+.pagination
+  margin: 16px 0;
+  display: flex;
+  justify-content: flex-end;
+  .el-pagination
+    .btn-prev,
+    .btn-next,
+    .btn-quicknext,
+    .el-pager .number
+      border: 1px solid $bdGrey
+      background-color: #fff
+      margin: 0 4px
+    .el-pager .number
+      &:not(.disabled).active
+        border: none
+        color: $red
+        background-color: #fff
+
+.el-button {
+  &.red-button {
+    background-color: $red !important;
+    color: #fff !important
+    border: none
+    &:disabled {
+      opacity: .5;
+    }
+    &:hover {
+      color: #fff;
+      opacity: .9
+    }
+  }
+  &.fw {
+    width: 100%
+  }
+}
+
+.red-radio
+  .el-radio__input.is-checked
+    .el-radio__inner
+      background-color $red
+      border-color $red
+    &+.el-radio__label
+      color $textColor
+      font-weight normal
+
+.el-loading-mask {
+  background: rgba(0, 0, 0, 0.05) !important;
+  .el-loading-spinner {
+    color: $dark-red
+    .el-loading-text {
+      color: $dark-red
+    }
+    .el-icon-loading {
+      color: $dark-red
+    }
+  }
+}
+
