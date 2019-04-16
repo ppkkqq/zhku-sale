@@ -33,12 +33,15 @@
               <span class="text">{{pItem.commentContent}}</span>
             </div>
             <div class="order-item-box">
-              <viewer class="view" v-if="pItem.commentPic1"
-                      :height="'60px'" :width="'60px'" :src="getPicture+pItem.commentPic1"/>
+              <img :src="getPicture+pItem.commentPic1" alt="#">
+              <viewer height="80px" width="80px" :src="getPicture+pItem.commentPic1"
+              />
+              <viewer v-if="pItem.commentPic1"
+                      :height="'60px'" :width="'60px'" :src="getPicture+'5cb2fb1a88ccd.png'"/>
               <viewer class="view" v-if="pItem.commentPic2"
-                      :height="'60px'" :width="'60px'" :src="getPicture+pItem.commentPic1"/>
+                      :height="'60px'" :width="'60px'" :src="getPicture+pItem.commentPic2"/>
               <viewer class="view" v-if="pItem.commentPic3"
-                      :height="'60px'" :width="'60px'" :src="getPicture+pItem.commentPic1"/>
+                      :height="'60px'" :width="'60px'" :src="getPicture+pItem.commentPic3"/>
             </div>
           </div>
         </div>
@@ -59,7 +62,6 @@
 </template>
 
 <script>
-  import { mapMutations, mapActions } from "vuex";
   import { orderDetail, tripBaseUrl } from "@/const/path";
   import { goodsDetail, addCart, getTourismOrderList,getOrderList,getPicture,getCommentList } from "@/const/api";
   import { resolveImg } from "@/utils";

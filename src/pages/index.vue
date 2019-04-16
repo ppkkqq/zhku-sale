@@ -13,9 +13,10 @@
             :class="{'type-item-on': typeShowIndex === index}"
             v-for="(item, index) in categary"
             :key="index"
+            @click="go2SearchByType(item)"
           >
             <span class="float-line"></span>
-            <a href="#" class="type-link">{{item}}</a>
+            <span class="type-link">{{item}}</span>
           </li>
         </ul>
       </div>
@@ -31,7 +32,7 @@
             <nuxt-link to="/serchShop?day=tomorrow&page=1" class="nav-link">明日拍卖</nuxt-link>
           </li>
           <li class="nav-item">
-            <nuxt-link to="/about" class="nav-link">我的拍卖</nuxt-link>
+            <nuxt-link to="/personal/jingjiajilu" class="nav-link">我的拍卖</nuxt-link>
           </li>
           <li class="nav-item">
             <a href="#" class="nav-link">帮助中心</a>
@@ -169,15 +170,20 @@
         recommendList: {'today': [],'tomorrow': [],'day3': []},
         tomorrowDatas: [],
         daysDatas: [],
-        categary: ['鞋靴', '箱包', '学习用品','衣服','休闲零食','生活用品','手机配件','电脑配件'],
+        categary: ['鞋靴', '配件', '学习用品','衣服','休闲零食','家居用品','手机配件','电脑硬件'],
         typeShowIndex: -1,
         floors: []
       };
     },
 
     methods: {
-      typeListShow(index) {
-        this.typeShowIndex = index;
+      go2SearchByType(item) {
+        this.$router.push({
+          path: "/serchShop",
+          query: {
+            type: item
+          }
+        });
       },
       async getRecommendList(day) {
         let rst = await this.$axios.$get(`${getRecommendList}?day=${day}`);
@@ -196,17 +202,6 @@
           query: {
             id: item.goodid
           }
-        });
-      },
-      getFloors() {
-        this.$axios.$get(floorAllFloor).then(res => {
-          this.floors = res.payload;
-        });
-      },
-      goToCategory(cate, cateId) {
-        this.$router.push({
-          path: "/serchShop",
-          query: { cate, cateId }
         });
       }
     },
@@ -257,7 +252,7 @@
         text-align: center;
         font-size: 14px;
         transition: all linear 0.1s;
-
+        cursor: pointer;
         &.type-item-on {
           background: #fff;
 

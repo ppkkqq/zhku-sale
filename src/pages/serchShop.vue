@@ -67,7 +67,8 @@
     <div class="bottomPages">
       <div class="shutPages">确定</div>
       <el-pagination class="el-pages-box"
-                     @current-change="handleCurrentChange"
+                     @prev-click="goPrePage"
+                     @next-click="goNextPage"
                      :current-page="currentPage"
                      layout=" prev, pager, next,total, jumper"
                      :total="goodsNum"
@@ -110,7 +111,8 @@ export default {
         sort: "", //排序方式
         // catalogId: "", //类目id
         search: "", //商品名
-        batchId: "" //源通币id
+        batchId: "", //源通币id
+        type: ""//商品类目
       },
       goodsList: [],
       filterOpts: ['不限','正在进行','即将开始','最近3天'],
@@ -130,8 +132,9 @@ export default {
     this.getPicture = getPicture;
   },
   mounted() {
-    const { cateId, keyword } = this.$route.query;
+    const { cateId, keyword,type } = this.$route.query;
     this.searchParams.search = keyword;
+    this.searchParams.type = type;
     // this.searchParams.catalogId = cateId;
     // this.searchOutline();
     this.getCart();
@@ -147,23 +150,11 @@ export default {
       return this.currentPage != 1;
     },
     canSelectNext() {
-      return this.currentPage != this.pageNumAll;
+      return this.currentPage != this.goodsNum/10;
     }
   },
   methods: {
-    handleQuery(queryList) {
-      // console.log("handleQuery", queryList);
-      // if (!queryList || !queryList.length) return;
-
-      let string = "";
-      queryList.forEach(item => {
-        string += `${item.key}_${item.val}`;
-      });
-      this.searchParams.filters = string;
-      this.search();
-    },
     goFilter(v) {
-      console.log(9879)
       let queryObj = {}
       this.currentPage = 1;
       switch (v) {
@@ -180,14 +171,7 @@ export default {
           queryObj = {day: 'day3'};
           break;
       }
-      // this.searchParams.catalogId = this.query.cateId;
       this.search(queryObj);
-    },
-    handleSizeChange(val) {
-      this.searchParams.page = 1;
-      // this.searchParams.size = val;
-      // this.searchParams.catalogId = this.query.cateId;
-      this.search();
     },
     handleCurrentChange(val) {
       this.searchParams.page = val;
@@ -196,10 +180,6 @@ export default {
     },
     gotoCart() {
       this.$router.push({ path: "/cart" });
-    },
-    onResetDone() {
-      this.search();
-      this.isReset = false;
     },
     onButtonSearch() {
       if (!this.searchParams.search || !this.searchParams.search.trim()) return;
@@ -254,7 +234,7 @@ export default {
       });
       const storage = localStorage;
       // 存入本地
-      if (storage) {
+      if (storage && this.searchParams.search) {
         const searchHistoryStr =
           storage.getItem("searchHistory") || JSON.stringify([]);
         this.searchHistoryList = JSON.parse(searchHistoryStr);
@@ -266,15 +246,21 @@ export default {
       }
       try {
         let rst
-        if (this.$route.query.keyword){
-          rst = await this.$axios.$get(`${searchGoodsList}?keyword=${this.$route.query.keyword}&page=${this.currentPage}`);
-        }else if (queryObj) {
+        if(!this.$route.query.keyword && this.$route.query.type && !queryObj){
+          rst = await this.$axios.$get(`${searchGoodsList}?type=${this.$route.query.type}&day=all&page=${this.currentPage}`);
+        }else if(!this.$route.query.keyword && this.$route.query.type && queryObj){
+          rst = await this.$axios.$get(`${searchGoodsList}?type=${this.$route.query.type}&day=${queryObj['day']}&page=${this.currentPage}`);
+        }else if (this.$route.query.keyword && !this.$route.query.type && !queryObj){
+          rst = await this.$axios.$get(`${searchGoodsList}?keyword=${this.$route.query.keyword}&day=all&page=${this.currentPage}`);
+        }else if (this.$route.query.keyword && !this.$route.query.type && queryObj) {
+          rst = await this.$axios.$get(`${searchGoodsList}?keyword=${this.$route.query.keyword}&day=${queryObj['day']}&page=${this.currentPage}`);
+        }else if(queryObj) {
           rst = await this.$axios.$get(`${searchGoodsList}?day=${queryObj['day']}&page=${this.currentPage}`)
           this.$route.query.day = queryObj[day]
         }else{
           rst = await this.$axios.$get(`${searchGoodsList}?day=${this.$route.query.day}&page=${this.currentPage}`);
         }
-        if (!this.$route.query.keyword){
+        if (!this.$route.query.keyword && !this.$route.query.type){
           let goodsNum, pageNumAll, goodsList, panel, currentPage;
           //获取到商品总数
           goodsNum = await this.$axios.$get(`${searchGoodsList}?day=${this.$route.query.day}&page=all`);
@@ -288,29 +274,14 @@ export default {
         loading.close();
         console.log(55666,rst)
         this.goodsList = rst;
-      //   this.goodsList.forEach(item => {
-      //     const targetPhoto = item.photoUrl || item.productPhoto;
-      //     item.showPicUrl =
-      //       (targetPhoto && targetPhoto.split(",")[0]) ||
-      //       "https://osscdn.gtytong.com/assets/images/default-img-normal.png";
-      //   });
       } catch (e) {
         loading.close();
         this.$message({
           showClose: true,
           message: "数据加载失败"
         });
-        // 保存类目id，不存在则不保存
-        // this.query.cateId = this.searchParams.catalogId;
-        // this.searchParams.catalogId = "";
       }
     },
-    // searchOutline() {
-    //   if (this.$route.query.keyword) {
-    //     this.searchParams.search = this.$route.query.keyword;
-    //   }
-    //   this.search();
-    // },
     onShowSearch() {
       if (localStorage.searchHistory) {
         this.searchHistoryList = this.unique(
@@ -346,12 +317,14 @@ export default {
       if (!this.canSelectPre) return;
       // this.searchParams.catalogId = this.$route.query.cateId;
       this.searchParams.page = this.currentPage - 1;
+      debugger
       this.search();
     },
     goNextPage() {
       if (!this.canSelectNext) return;
       // this.searchParams.catalogId = this.$route.query.cateId;
       this.searchParams.page = this.currentPage + 1;
+      debugger
       this.search();
     },
     async getCart() {

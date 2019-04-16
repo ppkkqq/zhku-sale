@@ -34,7 +34,7 @@
               <span class="text">{{pItem.date}}</span>
             </div>
             <div class="order-item-box">
-              <span class="text">{{pItem.status ? '领先':'出局'}}</span>
+              <span class="text">{{pItem.state == '1' ? '领先':'出局'}}</span>
             </div>
           </div>
         </div>

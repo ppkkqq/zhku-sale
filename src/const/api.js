@@ -222,3 +222,5 @@ export const getProductList = localhost + "/getProductList.php";
 export const getAddressList = localhost + "/getAddressList.php";
 export const deleteAddress = localhost + "/deleteAddress.php";
 export const newAddress = localhost + "/newAddress.php";
+export const newComment = localhost + "/newComment.php";
+export const addCommentPic = localhost + "/addCommentPic.php";

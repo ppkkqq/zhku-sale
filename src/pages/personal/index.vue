@@ -43,7 +43,8 @@
             </div>
             <div class="order-item-box">
               <p class="text">
-                <nuxt-link class="href-class" :to="'/personal/judge/'+pItem.goodid">评价</nuxt-link>
+                <nuxt-link class="href-class" :to="'/personal/judge/'+pItem.goodid" v-if="pItem.isComment">评价</nuxt-link>
+                <span v-else>已评价</span>
               </p>
             </div>
           </div>

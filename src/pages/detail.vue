@@ -12,14 +12,12 @@
             </div>
           </div>
           <div class="info-box">
-
             <div class="imgs">
               <img class="main-img" :src="photoes[subSelected]">
               <div class="img-selector">
                 <img class="sub-img" :class="{ 'sub-selected': subSelected === index }" v-for="(item,index) in photoes" :key="item" @click="subSelected = index" :src="item"/>
               </div>
             </div>
-
             <div class="goods">
               <div class="goods-name">{{goodsDetail.name}}</div>
               <div class="goods-content">{{goodsDetail.content}}</div>
@@ -55,6 +53,42 @@
             </div>
           </div>
         </div>
+        <el-dialog title="请选择收货地址" :visible.sync="dialogVisible">
+          <el-tabs type="border-card">
+            <el-tab-pane label="已有地址">
+              <div style="height: 254px;">
+                <el-select v-model="chooseAddr" style="width: 500px;" placeholder="请选择已有地址">
+                  <el-option
+                    v-for="item in addressList"
+                    :key="item.addressId"
+                    :label="item.shoujianren+'　'+item.tel+'　'+item.address+'　'+item.postalCode"
+                    :value="item.addressId">
+                  </el-option>
+                </el-select>
+              </div>
+            </el-tab-pane>
+            <el-tab-pane label="临时地址">
+              <el-form label-position="right" label-width="70px" :model="addressForm">
+                <el-form-item label="收件人">
+                  <el-input v-model="addressForm.shoujianren"></el-input>
+                </el-form-item>
+                <el-form-item label="电话">
+                  <el-input v-model="addressForm.tel"></el-input>
+                </el-form-item>
+                <el-form-item label="邮政编码">
+                  <el-input v-model="addressForm.code"></el-input>
+                </el-form-item>
+                <el-form-item label="地址">
+                  <el-input v-model="addressForm.address"></el-input>
+                </el-form-item>
+              </el-form>
+            </el-tab-pane>
+          </el-tabs>
+          <div slot="footer" class="dialog-footer">
+              <el-button @click="dialogVisible = false">取 消</el-button>
+              <el-button type="primary" @click="commitAddress">确 定</el-button>
+          </div>
+        </el-dialog>
         <div class="comment" v-show="showIntro1">
           <div class="segments">
             <div class="segment-selected" @click="goIntroduce('1')">商品介绍</div>
@@ -134,14 +168,12 @@
                   score-template="{value}">
                 </el-rate>
                 <span class="content-desc"> {{item.commentContent}}</span>
-                <div class="content-imgs" v-if="item.pic1">
-                  <viewer class="view" v-if="item.commentPic1"
+                  <viewer v-if="item.commentPic1"
                           :height="'60px'" :width="'60px'" :src="getPicture+item.commentPic1"/>
-                  <viewer class="view" v-if="item.commentPic2"
+                  <viewer v-if="item.commentPic2"
                           :height="'60px'" :width="'60px'" :src="getPicture+item.commentPic2"/>
-                  <viewer class="view" v-if="item.commentPic3"
+                  <viewer v-if="item.commentPic3"
                           :height="'60px'" :width="'60px'" :src="getPicture+item.commentPic3"/>
-                </div>
               </div>
             </div>
           </div>
@@ -168,7 +200,6 @@
           </div>
           <div class="cards full-width" style="width: 990px;" v-html="goodsDetail.detail"></div>
         </div>
-
       </div>
       <div class="history">
         <h6>浏览历史</h6>
@@ -177,7 +208,6 @@
         </div>
         <div class="card0" v-for="item in history"  @click="detailLink(item)">
           <img :src="getPicture+item.pic1">
-          <!--<span>{{item.name}}</span>-->
           <span class="count">{{item.price | price}}</span>
         </div>
       </div>
@@ -190,8 +220,6 @@
 import { formatDate } from "@/const/filter";
 import { mapState, mapMutations, mapActions, mapGetters } from "vuex";
 import mainHeader from "@/components/index-header";
-import jdAddressSelect from "@/components/jd-address-select";
-import addressSelect from "@/components/address-select";
 import indexFooter from "@/components/shop-footer";
 import {
   goodsDetail,
@@ -205,7 +233,8 @@ import {
   commitNewPrice,
   add2cart,
   addHistory,
-  commentList
+  commentList,
+  getAddressList
 } from "@/const/api";
 import qs from 'qs'
 import Viewer from "viewer";
@@ -225,8 +254,6 @@ export default {
   components: {
     mainHeader,
     indexFooter,
-    addressSelect,
-    jdAddressSelect,
     SkuSelect,
     SkuActions,
     SkuStepperStock,
@@ -280,7 +307,18 @@ export default {
       leftTime: 0,
       timer: null,//定时器
       score: 4.8,//评分
-      commentList: []
+      commentList: [],
+      dialogVisible: false,
+      addressList: [],
+      //临时地址
+      addressForm: {
+        shoujianren: '',
+        tel : '',
+        code: '',
+        address: ''
+      },
+      //选择已有地址
+      chooseAddr: ''
     };
   },
   created() {
@@ -307,7 +345,7 @@ export default {
       if (to.name == "shop-detail" && to.query.id !== from.query.id) {
         const location = this.selectedAddress;
         this.loadNewGoods = true;
-        this.getCollectInfo();
+        // this.getCollectInfo();
       }
     },
     subSelected() {
@@ -332,10 +370,7 @@ export default {
       "totalElements",
       "firstPage",
       "lastPage"
-    ]),
-    ...mapGetters("address", {
-      addressList: "list"
-    })
+    ])
   },
   methods: {
     getCommentList() {
@@ -367,25 +402,6 @@ export default {
     closeTab() {
       this.showAddrSel = false;
     },
-    // 获取收藏信息
-    async getCollectInfo() {
-      let payload = await this.getCollection({
-        accountId: this.userInfo.id,
-        itemId: this.productId
-      });
-
-      let collectItem = (payload && payload.content) || [];
-      this.defaultCollectedIdsMap = collectItem.map(it => {
-        return {
-          itemId: it.itemId,
-          collectId: it.id
-        };
-      });
-      this.defaultCollectedIds = collectItem.map(it => it.itemId);
-
-      this.defaultCollectedStatus = collectItem.length > 0;
-    },
-
     async getGoodsDetail() {
       const loading = this.$loading({
         // lock: true,
@@ -398,7 +414,6 @@ export default {
           this.goodsDetail = resData;
           this.leftTime = this.goodsDetail.lasttime * 1000 - new Date().getTime()
           this.myPrice = this.goodsDetail.price
-
           if (!!this.goodsDetail.pic1) {
             this.photoes.length = 0;
             this.$set(this.photoes, '0', getPicture + this.goodsDetail.pic1);
@@ -428,25 +443,6 @@ export default {
           }
           this.loadNewGoods = false;
         });
-    },
-    getCollectData() {
-      return [
-        {
-          accountId: this.userInfo.id, //会员id，必须
-          shopId: this.goodsDetail.shopId, //店铺id，非必须
-          shopName: "", //店铺名称，非必须
-          itemId: this.goodsDetail.id, //商品id，必须
-          skuId: this.goodsDetail.skuId, //skuId，非必需
-          type: this.goodsDetail.goodsType, //商品类型，非必须
-          name: this.goodsDetail.name, //商品名称，必须
-          price: this.goodsDetail.lowerSellPrice, //商品价格，必须
-          productPhoto: this.photoes[0], //商品图片，必须
-          remark: "" //备注，非必须
-        }
-      ];
-    },
-    getCancelCollectId() {
-      return [this.defaultCollectedIdsMap[0].collectId];
     },
     getHistory() {
       if (!this.isLogin) {
@@ -512,7 +508,6 @@ export default {
             goodid: this.productId
           })
             .then(res => {
-              console.log(222,res)
               if (res == 'error') {
                 this.$message.error('加入购物车失败，请稍后重新操作！')
               }else if(res == 'error2') {
@@ -606,57 +601,65 @@ export default {
       }
       this.maxStock = this.resultSku.stock_num;
     },
-
-    jump2goodsList() {
-      this.$router.push({
-        path: "/serchShop",
-        query: {
-          markingId: this.goodsDetail.markingId,
-          markingType: this.goodsDetail.markingType
-        }
-      });
-    },
-    jump2goods() {
-      this.$router.push({
-        path: "/shop/detail",
-        query: {
-          id: this.goodsDetail.countGoodId
-        }
-      });
-    },
     getRecord() {
       this.$axios.$get(`${getBabyRecord}?goodid=${this.productId}`)
         .then(res => {
           this.tableData2 = res;
         })
     },
-    //出价
+    //触发出价
     commitNewPrice() {
       if (!this.isLogin) {
         this.$message.error('登录后才能出价哦')
         return
       }
+      this.myPrice = Math.round(this.myPrice*100)/100
       this.$confirm(`您确认出价${this.myPrice}元吗?`, "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
       })
         .then(() => {
-          this.$axios.$post(commitNewPrice,{
-            user: this.isLogin,
-            goodid: this.productId,
-            mypri: this.myPrice
-          })
-            .then(res => {
-              console.log(222,res)
-              if (res == 'error') {
-                this.$message.error('出价失败，请稍后重新操作！')
-              }else {
-                this.$message.success('出价成功！')
-              }
+          this.dialogVisible = true;
+          this.$axios.$get(`${getAddressList}?userid=${this.$store.state.user.id}`)
+            .then( res => {
+              this.addressList = res.list
             })
+            .catch()
         })
         .catch(()=>{})
+    },
+    //确定出价
+    commitAddress() {
+      let data = {}
+     if (this.chooseAddr) {
+       data = {
+         user: this.isLogin,
+         goodid: this.productId,
+         mypri: this.myPrice,
+         addressId: this.chooseAddr
+       }
+     }
+     else if(this.addressForm){
+       data = {
+         user: this.isLogin,
+         goodid: this.productId,
+         mypri: this.myPrice,
+         addressForm: this.addressForm
+       }
+     }else {
+       this.dialogVisible = false
+       return
+     }
+      this.$axios.$post(commitNewPrice,data)
+        .then(res => {
+          if (res == 'error') {
+            this.$message.error('出价失败，请稍后重新操作！')
+          }else {
+            this.$message.success('出价成功！')
+          }
+        })
+      this.dialogVisible = false
     },
     ...mapMutations("cart", {
       add2PlaceOrderItems: "add2PlaceOrderItems",
@@ -679,7 +682,7 @@ export default {
   async mounted() {
     // 加载地址
     this.loadAddressList();
-    this.getCollectInfo();
+    // this.getCollectInfo();
     this.showNumber = await this.productCount();
   },
   distroyed() {

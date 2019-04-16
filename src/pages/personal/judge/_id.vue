@@ -3,7 +3,7 @@
     <div class="container" style="width: 1032px">
       <el-breadcrumb separator-class="el-icon-arrow-right" class="nav-bread">
         <el-breadcrumb-item to="/personal">个人中心</el-breadcrumb-item>
-        <el-breadcrumb-item to="/personal/order/myOrder">我的订单</el-breadcrumb-item>
+        <el-breadcrumb-item to="/personal/#">我的订单</el-breadcrumb-item>
         <el-breadcrumb-item class="active">商品评价</el-breadcrumb-item>
       </el-breadcrumb>
 
@@ -17,49 +17,55 @@
               <p class="shop-title">{{item.name}}</p>
               <h4 class="shop-prize">{{item.myPrice | price}}</h4>
             </div>
-            <div class="frBox">
-              <div class="shop-xing">
-                <div class="shop-xing-name">商品评分{{item.score}}</div>
+              <div class="frBox">
+                <div class="shop-xing">
+                  <div class="shop-xing-name">商品评分</div>
 
-                <el-rate class="el-xing"
-                         v-model="scoreList[index0]"
-                         :colors="['#99A9BF', '#F7BA2A', '#F7BA2A']">
-                </el-rate>
-              </div>
-              <div class="shop-xing">
-                <div class="shop-xing-name">商品评价</div>
-                <textarea class="text-area" v-model="contentList[index0]"></textarea>
-              </div>
-              <div class="shop-xing">
-                <div class="shop-xing-name inTn">晒单</div>
-                <div class="shop-shaiPic">
-                  <el-upload
-                    class="upload-demo"
-                    action="123"
-                    :file-list="imageList"
-                    list-type="picture">
-                    <el-button size="small" type="primary">选取文件</el-button>
-                    <el-button style="margin-left: 10px;" size="small" type="success" @click="submitUpload">确定上传</el-button>
-                    <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
-                  </el-upload>
-                  <p class="cx-shai">最多可上传3张图片，每张图片大小不超过5M，支持bmp,gif,jpg,png,jpeg格式文件</p>
+                  <el-rate class="el-xing"
+                           v-model="score"
+                           :colors="['#99A9BF', '#F7BA2A', '#F7BA2A']">
+                  </el-rate>
                 </div>
+                <div class="shop-xing">
+                  <div class="shop-xing-name">商品评价</div>
+                  <textarea class="text-area" v-model="content"></textarea>
+                </div>
+                <form class="form-horizontal templatemo-create-account templatemo-container" role="form"
+                      :action="addCommentPic" method="post" enctype="multipart/form-data" @submit.prevent="submitPic">
+                <div class="shop-xing">
+                  <div class="shop-xing-name inTn">晒单</div>
+                  <div class="shop-shaiPic">
+                    <el-upload
+                      class="upload-demo"
+                      ref="upload"
+                      :action="123"
+                      :multiple="multiple"
+                      :on-change="handleChange"
+                      :on-remove="handleRemove"
+                      :file-list="imageList"
+                      list-type="picture">
+                      <input type="file" required="required" name="pic[]" accept="image/*" multiple style="cursor: pointer;">
+                      <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+                    </el-upload>
+                    <p class="cx-shai">最多可上传3张图片，每张图片大小不超过5M，支持bmp,gif,jpg,png,jpeg格式文件</p>
+                    <input type="submit" value="提交" class="submit-pic">
+                  </div>
+                </div>
+                </form>
               </div>
-            </div>
           </div>
         </div>
       </div>
-      <div class="bottomSub">
-        <div class="submit-btn" @click="addComments">提交</div>
-      </div>
-
+      <!--<div class="bottomSub">-->
+        <!--<div class="submit-btn" @click="addComments">提交</div>-->
+      <!--</div>-->
     </div>
   </div>
 </template>
 
 <script>
 import upload from "@/components/upload";
-import { addComments, updateOrderStatusCommented,getOrderDetail,getPicture } from "@/const/api";
+import { addComments, updateOrderStatusCommented,getOrderDetail,getPicture,newComment,addCommentPic } from "@/const/api";
 
 export default {
   name: "judge",
@@ -77,9 +83,11 @@ export default {
       value1: null,
       value2: null,
       orderDetail: {},
-      scoreList: [],
-      contentList: [],
-      imageList: []
+      score: "",
+      content: "",
+      imageList: [],
+      url: "",
+      picList: []
     };
   },
   computed: {
@@ -88,150 +96,73 @@ export default {
     }
   },
   mounted() {
+    if (!this.user) {
+      this.$router.push({ path: '/login' })
+    }
     if (!this.$route.params || !this.$route.params.id) {
       return;
     }
     this.getMyOrderDetail();
     // this.getComments();
+    this.addCommentPic = addCommentPic;
   },
   methods: {
-    submitUpload() {
-      this.$confirm(`您确认上传所选图片吗?`, "提示", {
-        confirmButtonText: "确定",
-        cancelButtonText: "取消",
-        type: "warning"
-      })
-        .then(() => {
-          this.$axios.$post(getPicture, {
-            user: this.isLogin,
-            goodid: this.productId
-          })
-            .then( () => {
-
-            })
-            .catch()
-        })
-        .catch()
+    handleRemove(file, fileList) {
+      this.imageList = fileList
     },
-    // async getComments() {
-    //   let rst = await this.$store.dispatch(
-    //     "orders/getCommentsAction",
-    //     this.$route.params.id
-    //   );
-    // },
-    handleReplace(index, index0) {
-      this.index[index0] = index;
-      this.multiple = false;
+    handleChange(file, fileList) {
+      this.imageList = fileList
     },
-    handleReplace2() {
-      this.multiple = true;
-    },
-    // onUpload({ result, index }, index0) {
-    //   if (this.multiple) {
-    //     // 继续添加
-    //     if (typeof result.length == "string") {
-    //       //  单个元素
-    //       if (this.imageList[index0].length <= 5) {
-    //         let tempArray = this.imageList[index0];
-    //         tempArray.push(result);
-    //         this.$set(this.imageList, index0, tempArray);
-    //       } else {
-    //         this.$message.error(
-    //           "一次最多上传6张图片，当前还能继续添加1张图片。"
-    //         );
-    //         return;
-    //       }
-    //     } else {
-    //       //  多个元素
-    //       if (this.imageList[index0].length + result.length <= 6) {
-    //         let tempArray = this.imageList[index0].concat(result);
-    //         this.$set(this.imageList, index0, tempArray);
-    //         //todo:::  查看vue文档  看concat 是否为正确语法
-    //       } else {
-    //         this.$message.error(
-    //           `一次最多上传6张图片，当前还能继续添加${6 -
-    //             this.imageList[index0].length}张图片。`
-    //         );
-    //         return;
-    //       }
-    //     }
-    //   } else {
-    //     //替换当前图片
-    //     this.imageList[index0].splice(index, 1, result);
-    //   }
-    //   console.log(this.imageList[index0], this.index, index0);
-    // },
-
     async getMyOrderDetail() {
       let rst = await this.$axios.$get(`${getOrderDetail}?user=${this.user}&goodid=${this.$route.params.id}`);
       this.orderDetail = rst;
-      // this.orderDetail.map((item, index) => {
-      //   this.scoreList[index] = null;
-      //   this.contentList[index] = "";
-      //   this.imageList[index] = [];
-      //   this.index[index] = 0;
-      // });
     },
-
-    async addComments() {
+    //上传图片
+    submitPic(event) {
       if (!this.orderDetail) {
         return;
       }
-
-      var isEmptyContent = false;
-      let skuMap = [];
-      this.orderDetail.map((item, index) => {
-        if (this.contentList[index] == "") {
-          isEmptyContent = true;
-        }
-        skuMap[index] = {
-          orderId: this.$route.params.id,
-          itemId: item.itemId,
-          content: this.contentList[index], //内容，必须
-          //"evaluationId": null,原始评价id，不为空代表是追加评价
-          satisfactionScore: this.scoreList[index], //满意度评分，必须
-          logisticsServiceScore: 5, //物流服务，非必须
-          serviceAttitudeScore: 5, //服务态度，非必须
-          imageUrl: this.imageList[index].join(",")
-        };
-      });
-
-      if (isEmptyContent) {
+      if (!this.score || !this.content) {
         this.$message("内容不能为空");
         return;
       }
-      this.$axios
-        .$post(addComments, skuMap)
-        .then(() => {
-          // this.$message.success('发送成功')
-          this.$axios
-            .$get(
-              updateOrderStatusCommented + `?orderId=${this.$route.params.id}`
-            )
-            .then(result => {
-              if (result.payload === "1") {
-                //1表示成功
-                this.$message.success("评价发布成功");
-                this.$router.back();
-              } else {
-                //0表示失败
-                this.$message.error("评价发布失败，" + result.msg);
-              }
-            })
-            .catch(error => {
-              this.$message.error("评价发布失败，请稍后再试");
-            });
+      this.$confirm(`您确认发表该评价吗?`, "提示", {
+        confirmButtonText: "确定",
+        cancelButtonText: "取消",
+        type: "warning"
+      }).then(() => {
+        let formData = new FormData(event.target);
+        this.$axios.$post(addCommentPic, formData)
+          .then(res => {
+            if (res == 'error') {
+              this.$message.error("图片上传失败，请稍后再试");
+              return false
+            } else {
+              this.picList = res
+              this.addComments()
+            }
+          })
+      })
+        return false
+  },
+  async addComments() {
+      this.$axios.$post(newComment, {
+        user: this.user,
+        goodid: this.$route.params.id,
+        score: this.score,
+        content: this.content,
+        images: this.picList
+      })
+        .then(res => {
+          if (res == 'success') {
+            this.$message.success("评价发布成功");
+            this.$router.push({ path: "/personal" })
+          }else{
+            this.$message.error("评价发布失败，请稍后再试");
+          }
         })
-        .catch(() => {
-          this.$message.error("评价发布失败，请稍后再试");
-        });
-      // let rst = await this.$store.dispatch("orders/addCommentsAction", skuMap);
-      // if (rst && rst.length > 0) {
-      //   this.$message.success({
-      //     message: "评价成功",
-      //     duration: 1000
-      //   });
-      // }
+      .catch(() => {
+      })
     }
   },
   created() {
@@ -518,5 +449,15 @@ export default {
       margin 0px auto
       cursor pointer
     }
+  }
+  .submit-pic{
+    display: inline-block;
+    margin-top: 10px;
+    padding: 10px 40px;
+    background-color: #67c23a;
+    color: #fff;
+    border: 0;
+    border-radius: 5px;
+    cursor: pointer;
   }
 </style>

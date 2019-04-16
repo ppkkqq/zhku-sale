@@ -53,7 +53,7 @@
           <template v-if="isLogin">
             <span class="red" @click="quit">退出</span>
             <span class="sep"></span>
-            <nuxt-link to="/personal/order/myOrder" class="red" style="color: #888;">我的订单</nuxt-link>
+            <nuxt-link to="/personal" class="red" style="color: #888;">我的订单</nuxt-link>
             <span class="sep"></span>
           </template>
           <span class="text">帮助中心</span>
