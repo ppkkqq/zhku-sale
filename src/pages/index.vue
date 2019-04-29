@@ -97,7 +97,7 @@
             class="list-item"
             v-for="(item,index) in recommendList['tomorrow']"
             :key="index"
-            v-if="item && item.name && index < 5"
+            v-if="item && item.name && index < 6"
             :to="{ path: '/detail', query: { id: item.goodid}}"
           >
             <img :src="getPicture+item.pic1" class="good-cover">
@@ -126,7 +126,7 @@
             class="list-item"
             v-for="(item,index) in recommendList['day3']"
             :key="index"
-            v-if="item && item.name && index < 5"
+            v-if="item && item.name && index < 6"
             :to="{ path: '/detail', query: { id: item.goodid}}"
           >
             <img :src="getPicture+item.pic1" class="good-cover">
@@ -144,74 +144,79 @@
 </template>
 
 <script>
-  import indexHeader from "@/components/shop-header";
-  import mainSearch from "@/components/main-search";
-  import indexFooter from "@/components/shop-footer";
-  import { getRecommendList,getPicture } from "@/const/api";
-  import { confirmOrder } from "../const/path";
-  export default {
-    components: {
-      indexHeader,
-      mainSearch,
-      indexFooter
-    },
-    data() {
-      return {
-        banner: [
-          {
-            src: require("@/assets/images/shop-index-banner.png")
-          }
-        ],
-        colorList: [
-          "#0f4511",
-          "#0f4511",
-          "#0f4511"
-        ],
-        recommendList: {'today': [],'tomorrow': [],'day3': []},
-        tomorrowDatas: [],
-        daysDatas: [],
-        categary: ['鞋靴', '配件', '学习用品','衣服','休闲零食','家居用品','手机配件','电脑硬件'],
-        typeShowIndex: -1,
-        floors: []
-      };
-    },
-
-    methods: {
-      go2SearchByType(item) {
-        this.$router.push({
-          path: "/serchShop",
-          query: {
-            type: item
-          }
-        });
-      },
-      async getRecommendList(day) {
-        let rst = await this.$axios.$get(`${getRecommendList}?day=${day}`);
-        if (rst != "") {
-          this.recommendList[day] = rst;
-        } else {
-          this.$message({
-            showClose: true,
-            message: "获取推荐列表失败，请稍后再试"
-          });
+import indexHeader from "@/components/shop-header";
+import mainSearch from "@/components/main-search";
+import indexFooter from "@/components/shop-footer";
+import { getRecommendList, getPicture } from "@/const/api";
+import { confirmOrder } from "../const/path";
+export default {
+  components: {
+    indexHeader,
+    mainSearch,
+    indexFooter
+  },
+  data() {
+    return {
+      banner: [
+        {
+          src: require("@/assets/images/shop-index-banner.png")
         }
-      },
-      detailLink(item) {
-        this.$router.push({
-          path: "/detail",
-          query: {
-            id: item.goodid
-          }
+      ],
+      colorList: ["#0f4511", "#0f4511", "#0f4511"],
+      recommendList: { today: [], tomorrow: [], day3: [] },
+      tomorrowDatas: [],
+      daysDatas: [],
+      categary: [
+        "鞋靴",
+        "配件",
+        "箱包",
+        "学习用品",
+        "休闲零食",
+        "家居用品",
+        "手机配件",
+        "电脑硬件"
+      ],
+      typeShowIndex: -1,
+      floors: []
+    };
+  },
+
+  methods: {
+    go2SearchByType(item) {
+      this.$router.push({
+        path: "/serchShop",
+        query: {
+          type: item
+        }
+      });
+    },
+    async getRecommendList(day) {
+      let rst = await this.$axios.$get(`${getRecommendList}?day=${day}`);
+      if (rst != "") {
+        this.recommendList[day] = rst;
+      } else {
+        this.$message({
+          showClose: true,
+          message: "获取推荐列表失败，请稍后再试"
         });
       }
     },
-    mounted() {
-      this.getRecommendList('today');
-      this.getRecommendList('tomorrow');
-      this.getRecommendList('day3');
-      this.getPicture = getPicture;
+    detailLink(item) {
+      this.$router.push({
+        path: "/detail",
+        query: {
+          id: item.goodid
+        }
+      });
     }
-  };
+  },
+  mounted() {
+    this.getRecommendList("today");
+    this.getRecommendList("tomorrow");
+    this.getRecommendList("day3");
+    this.getPicture = getPicture;
+  }
+};
 </script>
 
 <style lang="stylus">

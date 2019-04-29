@@ -7,16 +7,16 @@ require("promise.prototype.finally").shim();
 const networkError = "Network Error";
 export default function(context) {
   let { $axios, store, redirect, app, route } = context;
-  $axios.onRequest(config => {
-    let url = config.url;
-
-    url += url.indexOf("?") > -1 ? "&" : "?";
-    url += `token=${store.state.token}`;
-    url += `&tenantCode=${tenantCode}`;
-    url += `&currentTime=${Date.now()}`;
-    config.url = url;
-    return config;
-  });
+  // $axios.onRequest(config => {
+  //   let url = config.url;
+  //
+  //   url += url.indexOf("?") > -1 ? "&" : "?";
+  //   url += `token=${store.state.token}`;
+  //   url += `&tenantCode=${tenantCode}`;
+  //   url += `&currentTime=${Date.now()}`;
+  //   config.url = url;
+  //   return config;
+  // });
 
   $axios.onError(error => {
     if (error.message === networkError || !error.response) {

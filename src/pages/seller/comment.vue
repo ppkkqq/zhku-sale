@@ -40,9 +40,9 @@
               <viewer class="view" v-if="pItem.commentPic1"
                       :height="'60px'" :width="'60px'" :src="getPicture+pItem.commentPic1"/>
               <viewer class="view" v-if="pItem.commentPic2"
-                      :height="'60px'" :width="'60px'" :src="getPicture+pItem.commentPic1"/>
+                      :height="'60px'" :width="'60px'" :src="getPicture+pItem.commentPic2"/>
               <viewer class="view" v-if="pItem.commentPic3"
-                      :height="'60px'" :width="'60px'" :src="getPicture+pItem.commentPic1"/>
+                      :height="'60px'" :width="'60px'" :src="getPicture+pItem.commentPic3"/>
             </div>
           </div>
         </div>
@@ -63,59 +63,68 @@
 </template>
 
 <script>
-  import { mapMutations, mapActions } from "vuex";
-  import { orderDetail, tripBaseUrl } from "@/const/path";
-  import { goodsDetail, addCart, getTourismOrderList,getOrderList,getPicture,getCommentList } from "@/const/api";
-  import { resolveImg } from "@/utils";
-  import Viewer from "viewer";
-  export default {
-    name: "commentList",
-    layout: "seller-layout",
-    components: {
-      Viewer
-    },
-    data() {
-      return {
-        activeTab: 0,
-        currentPage: 1,
-        commentList: [],
-        total: 0,
-        pageSize: 10,
-        isEmpty: false,
-        healthCaresEmpty: false,
-        currentTab: 1,
-        healthCaresList: []
-      };
-    },
-    computed: {
-      user() {
-        return this.$store.state.user.id;
-      }
-    },
-    mounted() {
-      this.getMyComment();
-    },
-    methods: {
-      async getMyComment() {
-        //type,code,mobile,password
-        let data = {
-          page: this.currentPage,
-          pageSize: 5
-        };
-        const rst = await this.$axios.$get(`${getCommentList}?userid=${this.user}`);
-        console.log(12345,rst)
-        this.commentList = rst;
-        this.total = rst.total;
-        this.pageSize = rst.pageSize;
-        if (!this.commentList || !this.commentList.length)
-          return (this.isEmpty = true);
-        this.isEmpty = false;
-      }
-    },
-    created() {
-      this.getPicture = getPicture;
+import { mapMutations, mapActions } from "vuex";
+import { orderDetail, tripBaseUrl } from "@/const/path";
+import {
+  goodsDetail,
+  addCart,
+  getTourismOrderList,
+  getOrderList,
+  getPicture,
+  getCommentList
+} from "@/const/api";
+import { resolveImg } from "@/utils";
+import Viewer from "viewer";
+export default {
+  name: "commentList",
+  layout: "seller-layout",
+  components: {
+    Viewer
+  },
+  data() {
+    return {
+      activeTab: 0,
+      currentPage: 1,
+      commentList: [],
+      total: 0,
+      pageSize: 10,
+      isEmpty: false,
+      healthCaresEmpty: false,
+      currentTab: 1,
+      healthCaresList: []
+    };
+  },
+  computed: {
+    user() {
+      return this.$store.state.user.id;
     }
-  };
+  },
+  mounted() {
+    this.getMyComment();
+  },
+  methods: {
+    async getMyComment() {
+      //type,code,mobile,password
+      let data = {
+        page: this.currentPage,
+        pageSize: 5
+      };
+      const rst = await this.$axios.$get(
+        `${getCommentList}?userid=${this.user}`
+      );
+      console.log(12345, rst);
+      this.commentList = rst;
+      this.total = rst.total;
+      this.pageSize = rst.pageSize;
+      if (!this.commentList || !this.commentList.length)
+        return (this.isEmpty = true);
+      this.isEmpty = false;
+    }
+  },
+  created() {
+    this.getPicture = getPicture;
+  }
+};
 </script>
 
 <style scoped lang="stylus">

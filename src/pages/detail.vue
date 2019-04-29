@@ -26,11 +26,10 @@
                   <span class="title">当 前 价：</span>
                   <span class="count">{{goodsDetail.price | price }}</span>
                 </div>
-                <div class="row">
+                <div class="row" v-if="lasttime > currentTime && starttime < currentTime">
                   <span class="title">距离结束：</span>
                   <countdown :time="leftTime"
-                             :auto-start="true"
-                             v-if="goodsDetail.lasttime > 0">
+                             :auto-start="true">
                   <template slot-scope="props">
                     <span v-if="props.days>0" class="blod-font">{{props.days}}</span>天
                     <span class="blod-font">{{props.hours}}</span>时
@@ -39,15 +38,22 @@
                   </template>
                 </countdown>
                 </div>
+                <!--拍卖未开始-->
+                <div class="row" v-if="starttime > currentTime">
+                  <span class="title">拍卖未开始</span>
+                </div>
+                <!--拍卖结束-->
+                <div class="row" v-if="lasttime < currentTime">
+                  <span class="title">拍卖已结束</span>
+                </div>
                 <div class="row">
                   <span class="title">出　价：</span>
-                  <el-input-number v-model="myPrice" :precision="2" :step="input2price || 0.01" :min="goodsDetail.price*1+0.01"></el-input-number>
+                  <el-input-number v-model="myNewPrice" :precision="2" :step="input2price || 0.01" :min="goodsDetail.price*1+0.01"></el-input-number>
                   <span>　价 格 跨 度：<el-input v-model="input2price" placeholder="输入跨度" style="width:110px" :maxlength="4" type="number"></el-input></span>
                 </div>
               <div class="buttons">
-                <button class="buy" @click="commitNewPrice">立即出价</button>
-                <button class="cart"  @click="addtoCart">加入购物车</button>
-
+                <button class="buy" @click="commitNewPrice" :disabled="(goodsDetail.lasttime < currentTime) || (goodsDetail.starttime > currentTime)">立即出价</button>
+                <button class="cart"  @click="addtoCart" :disabled="(goodsDetail.lasttime < currentTime) || (goodsDetail.starttime > currentTime)">加入购物车</button>
               </div>
             </div>
             </div>
@@ -236,7 +242,7 @@ import {
   commentList,
   getAddressList
 } from "@/const/api";
-import qs from 'qs'
+import qs from "qs";
 import Viewer from "viewer";
 import SkuSelect from "@/components/sku/SkuSelect";
 import SkuStepperStock from "@/components/sku/sku-stepper-stock";
@@ -247,8 +253,7 @@ import { convert } from "@/utils/sku";
 import { changeData } from "@/const/filter";
 import { confirmOrder, cart } from "@/const/path";
 import Countdown from "@xkeshi/vue-countdown";
-const defaultDetailPhoto =
-  getPicture + "default-img-big.png";
+const defaultDetailPhoto = getPicture + "default-img-big.png";
 
 export default {
   components: {
@@ -296,40 +301,45 @@ export default {
       loadNewGoods: true, // 是否加载新商品
       lowNum: 0, //显示小图右index
       highNum: 5, //显示小图左index
-      tableData2: [{
-        date: '',
-        user: '',
-        state: 0,
-        price: 0
-      }],
-      myPrice: 1.00,
+      tableData2: [
+        {
+          date: "",
+          user: "",
+          state: 0,
+          myPrice: 0
+        }
+      ],
+      myNewPrice: 1.0,
       input2price: null,
       leftTime: 0,
-      timer: null,//定时器
-      score: 4.8,//评分
+      timer: null, //定时器
+      score: 4.8, //评分
       commentList: [],
       dialogVisible: false,
       addressList: [],
       //临时地址
       addressForm: {
-        shoujianren: '',
-        tel : '',
-        code: '',
-        address: ''
+        shoujianren: "",
+        tel: "",
+        code: "",
+        address: ""
       },
       //选择已有地址
-      chooseAddr: ''
+      chooseAddr: "",
+      currentTime: "",
+      starttime: "",
+      lasttime: ""
     };
   },
   created() {
     this.getGoodsDetail();
     this.getRecord();
     clearInterval(this.timer);
-    this.setTime();
     this.formatDate = formatDate;
     this.getPicture = getPicture;
     this.findChildAddressByParentAreaId = findChildAddressByParentAreaId;
     this.getCommentList();
+    this.currentTime = new Date().getTime();
   },
   watch: {
     page() {
@@ -366,38 +376,37 @@ export default {
     ...mapState("user", {
       userInfo: state => state
     }),
-    ...mapState("comments", [
-      "totalElements",
-      "firstPage",
-      "lastPage"
-    ])
+    ...mapState("comments", ["totalElements", "firstPage", "lastPage"])
   },
   methods: {
     getCommentList() {
-      this.$axios.$get(`${commentList}?goodid=${this.productId}`)
-        .then( res => {
-          if (res != 'error'){
+      this.$axios
+        .$get(`${commentList}?goodid=${this.productId}`)
+        .then(res => {
+          if (res != "error") {
             this.commentList = res;
           }
         })
-        .catch()
+        .catch();
     },
     //给竞价表格设置样式
-    tableRowClassName({row, rowIndex}) {
+    tableRowClassName({ row, rowIndex }) {
       if (rowIndex === 0) {
-        return 'success-row';
+        return "success-row";
       }
-      return '';
+      return "";
     },
     //给竞价记录设置定时器
     setTime() {
-      this.timer = setInterval(() =>{
-        this.$axios.$get(`${getBabyRecord}?goodid=${this.productId}`)
+      clearInterval(this.timer);
+      this.timer = setInterval(() => {
+        this.$axios
+          .$get(`${getBabyRecord}?goodid=${this.productId}`)
           .then(res => {
             this.tableData2 = res;
             this.goodsDetail.price = this.tableData2[0].myPrice;
-          })
-      },10000);
+          });
+      }, 10000);
     },
     closeTab() {
       this.showAddrSel = false;
@@ -412,17 +421,19 @@ export default {
       rst
         .then(resData => {
           this.goodsDetail = resData;
-          this.leftTime = this.goodsDetail.lasttime * 1000 - new Date().getTime()
-          this.myPrice = this.goodsDetail.price
+          this.starttime = Date.parse(this.goodsDetail.starttime);
+          this.lasttime = Date.parse(this.goodsDetail.lasttime);
+          this.leftTime = this.lasttime - new Date().getTime();
+          this.myNewPrice = this.goodsDetail.price;
           if (!!this.goodsDetail.pic1) {
             this.photoes.length = 0;
-            this.$set(this.photoes, '0', getPicture + this.goodsDetail.pic1);
+            this.$set(this.photoes, "0", getPicture + this.goodsDetail.pic1);
           }
-          if(!!this.goodsDetail.pic2){
-            this.$set(this.photoes, '1', getPicture + this.goodsDetail.pic2);
+          if (!!this.goodsDetail.pic2) {
+            this.$set(this.photoes, "1", getPicture + this.goodsDetail.pic2);
           }
-          if(!!this.goodsDetail.pic3){
-            this.$set(this.photoes, '2', getPicture + this.goodsDetail.pic3);
+          if (!!this.goodsDetail.pic3) {
+            this.$set(this.photoes, "2", getPicture + this.goodsDetail.pic3);
           }
         })
         .catch(err => {
@@ -446,24 +457,27 @@ export default {
     },
     getHistory() {
       if (!this.isLogin) {
-        return
+        return;
       }
       this.$axios
-        .$get(`${getHistory}?userid=${this.$store.state.user.id}
-          &goodid=${this.productId}`)
+        .$get(
+          `${getHistory}?userid=${this.$store.state.user.id}
+          &goodid=${this.productId}`
+        )
         .then(res => {
-          if (res != 'error') {
+          if (res != "error") {
             this.history = res;
           }
         });
       //将当前商品存入历史记录
-      this.$axios.$post(addHistory,{
-        userid: this.$store.state.user.id,
-        goodid: this.productId
-      })
-        .then(res => {
-          console.log(1212,res)
+      this.$axios
+        .$post(addHistory, {
+          userid: this.$store.state.user.id,
+          goodid: this.productId
         })
+        .then(res => {
+          console.log(1212, res);
+        });
     },
     gotoCart() {
       this.$router.push({ path: "/cart" });
@@ -479,6 +493,7 @@ export default {
         this.showIntro1 = false;
         this.showIntro3 = false;
         this.showIntro4 = false;
+        this.setTime();
       } else if (index == 3) {
         this.showIntro3 = true;
         this.showIntro1 = false;
@@ -494,8 +509,8 @@ export default {
 
     async addtoCart() {
       if (!this.isLogin) {
-        this.$message.error('您还未登录哦')
-        return
+        this.$message.error("您还未登录哦");
+        return;
       }
       this.$confirm(`您确认将该商品加入购物车吗?`, "提示", {
         confirmButtonText: "确定",
@@ -503,21 +518,22 @@ export default {
         type: "warning"
       })
         .then(() => {
-          this.$axios.$post(add2cart,{
-            user: this.isLogin,
-            goodid: this.productId
-          })
-            .then(res => {
-              if (res == 'error') {
-                this.$message.error('加入购物车失败，请稍后重新操作！')
-              }else if(res == 'error2') {
-                this.$message.info('购物车已经存在该商品！')
-              }else {
-                this.$message.success('加入购物车成功！')
-              }
+          this.$axios
+            .$post(add2cart, {
+              user: this.isLogin,
+              goodid: this.productId
             })
+            .then(res => {
+              if (res == "error") {
+                this.$message.error("加入购物车失败，请稍后重新操作！");
+              } else if (res == "error2") {
+                this.$message.info("购物车已经存在该商品！");
+              } else {
+                this.$message.success("加入购物车成功！");
+              }
+            });
         })
-        .catch(()=>{})
+        .catch(() => {});
     },
     showMessage(msg, type = "default") {
       this.$message({
@@ -535,59 +551,15 @@ export default {
 
       return true;
     },
-    async toPay() {
-      if (!this.isLogin) {
-        const fullPath = this.$route.fullPath; //带query
-        this.go2Login(fullPath);
-        return;
-      }
-      this.payLoading = true;
-      const loading = this.$loading({
-        // lock: true,
-        text: "Loading",
-        spinner: "el-icon-loading"
-      });
-      try {
-        // debugger;
-        const resp = await this.addOrder({
-          address: this.selectedAddress,
-          isPreOrder: true,
-          skuList: [
-            {
-              skuId: this.resultSku.id,
-              quantity: this.quantity,
-              categoryId: this.resultSku.categoryId,
-              markingId: this.goodsDetail.markingId,
-              markingType: this.goodsDetail.markingType
-            }
-          ],
-          isCart: false,
-        });
-
-        this.$router.push({
-          path: confirmOrder,
-          query: {
-            preId: resp.id
-          }
-        });
-      } catch (err) {
-        const msg =
-          (err.response.data && err.response.data.payload) || "立即出价失败";
-        this.$message.error(msg);
-      } finally {
-        loading.close();
-        this.payLoading = false;
-      }
-    },
     detailLink(item) {
       // document.getElementById("top").scrollIntoView({ behavior: "smooth" });
       this.$router.push({
         path: "/detail",
         query: {
-          id: item.goodid,
+          id: item.goodid
         }
       });
-      location.replace()
+      location.replace();
     },
     onSelectSku(selectedSku, final) {
       this.assistForm = { ...selectedSku };
@@ -602,64 +574,64 @@ export default {
       this.maxStock = this.resultSku.stock_num;
     },
     getRecord() {
-      this.$axios.$get(`${getBabyRecord}?goodid=${this.productId}`)
+      this.$axios
+        .$get(`${getBabyRecord}?goodid=${this.productId}`)
         .then(res => {
           this.tableData2 = res;
-        })
+        });
     },
     //触发出价
     commitNewPrice() {
       if (!this.isLogin) {
-        this.$message.error('登录后才能出价哦')
-        return
+        this.$message.error("登录后才能出价哦");
+        return;
       }
-      this.myPrice = Math.round(this.myPrice*100)/100
-      this.$confirm(`您确认出价${this.myPrice}元吗?`, "提示", {
+      this.myNewPrice = Math.round(this.myNewPrice * 100) / 100;
+      this.$confirm(`您确认出价${this.myNewPrice}元吗?`, "提示", {
         confirmButtonText: "确定",
         cancelButtonText: "取消",
         type: "warning"
       })
         .then(() => {
           this.dialogVisible = true;
-          this.$axios.$get(`${getAddressList}?userid=${this.$store.state.user.id}`)
-            .then( res => {
-              this.addressList = res.list
+          this.$axios
+            .$get(`${getAddressList}?userid=${this.$store.state.user.id}`)
+            .then(res => {
+              this.addressList = res.list;
             })
-            .catch()
+            .catch();
         })
-        .catch(()=>{})
+        .catch(() => {});
     },
     //确定出价
     commitAddress() {
-      let data = {}
-     if (this.chooseAddr) {
-       data = {
-         user: this.isLogin,
-         goodid: this.productId,
-         mypri: this.myPrice,
-         addressId: this.chooseAddr
-       }
-     }
-     else if(this.addressForm){
-       data = {
-         user: this.isLogin,
-         goodid: this.productId,
-         mypri: this.myPrice,
-         addressForm: this.addressForm
-       }
-     }else {
-       this.dialogVisible = false
-       return
-     }
-      this.$axios.$post(commitNewPrice,data)
-        .then(res => {
-          if (res == 'error') {
-            this.$message.error('出价失败，请稍后重新操作！')
-          }else {
-            this.$message.success('出价成功！')
-          }
-        })
-      this.dialogVisible = false
+      let data = {};
+      if (this.chooseAddr) {
+        data = {
+          user: this.isLogin,
+          goodid: this.productId,
+          mypri: this.myNewPrice,
+          addressId: this.chooseAddr
+        };
+      } else if (this.addressForm) {
+        data = {
+          user: this.isLogin,
+          goodid: this.productId,
+          mypri: this.myNewPrice,
+          addressForm: this.addressForm
+        };
+      } else {
+        this.dialogVisible = false;
+        return;
+      }
+      this.$axios.$post(commitNewPrice, data).then(res => {
+        if (res == "error") {
+          this.$message.error("出价失败，请稍后重新操作！");
+        } else {
+          this.$message.success("出价成功！");
+        }
+      });
+      this.dialogVisible = false;
     },
     ...mapMutations("cart", {
       add2PlaceOrderItems: "add2PlaceOrderItems",
@@ -677,7 +649,7 @@ export default {
       "getCollection",
       "deleteCollection",
       "go2Login"
-    ]),
+    ])
   },
   async mounted() {
     // 加载地址
@@ -685,8 +657,8 @@ export default {
     // this.getCollectInfo();
     this.showNumber = await this.productCount();
   },
-  distroyed() {
-    clearInterval(this.timer)
+  beforeDestroy() {
+    clearInterval(this.timer);
   }
 };
 </script>

@@ -20,7 +20,7 @@
         <div class="text" style="width: 100px">操作</div>
       </div>
 
-      <el-checkbox-group v-model="allCheckedGoodsSingleShop" >
+      <!--<el-checkbox-group v-model="allCheckedGoodsSingleShop" >-->
           <div class="cart-content container">
             <el-checkbox-group class="cart-goods white-bg"
                                v-model="checkedSkuList">
@@ -40,7 +40,7 @@
                   </div>
                   <div class="goods-price">{{item.price | price}}</div>
                   <div class="goods-operation">
-                    <div class="operation-item" @click="deleteGoods(item.skuId,index1)">
+                    <div class="operation-item" @click="deleteGoods(item.goodid,index1)">
                       <i class="iconfont icon-shanchu-01"></i>
                       <span class="text">删除</span>
                     </div>
@@ -49,7 +49,7 @@
               </div>
             </el-checkbox-group>
           </div>
-      </el-checkbox-group>
+      <!--</el-checkbox-group>-->
 
       <div class="fixed-wrap" :style="{bottom: diffTop + 'px'}">
         <div class="pay-line container">
@@ -71,367 +71,272 @@
 </template>
 
 <script>
-  import { mapState, mapMutations, mapGetters, mapActions } from "vuex";
-  import indexHeader from "@/components/shop-header";
-  import cartSearchTitle from "@/components/cart-search-title";
-  import indexFooter from "@/components/shop-footer";
-  import { confirmOrder } from "@/const/path";
-  import { updateQty,cartList,getPicture } from "@/const/api";
-  import remove from "lodash/remove";
-  import sortBy from "lodash/sortBy";
-  import qs from "qs";
+import { mapState, mapMutations, mapGetters, mapActions } from "vuex";
+import indexHeader from "@/components/shop-header";
+import cartSearchTitle from "@/components/cart-search-title";
+import indexFooter from "@/components/shop-footer";
+import { confirmOrder } from "@/const/path";
+import { updateQty, cartList, getPicture, deleteCartGood } from "@/const/api";
+import remove from "lodash/remove";
+import sortBy from "lodash/sortBy";
+import qs from "qs";
 
-  export default {
-    name: "cart",
-    components: {
-      indexHeader,
-      indexFooter,
-      cartSearchTitle
+export default {
+  name: "cart",
+  components: {
+    indexHeader,
+    indexFooter,
+    cartSearchTitle
+  },
+  data() {
+    return {
+      cartListloaded: false,
+      loadingCartList: false,
+      checkAll: false, // 是否全选
+      num: [], // mock数量选择
+      diffTop: 0,
+      check: [],
+      skuIdList: [],
+      showAddrSel: false,
+      isUseLocationCode: false, //是否使用城市定位
+      allCheckedSingleShop: [],
+      cartList: [], //购物车商品列表
+      checkedSkuList: []
+    };
+  },
+
+  computed: {
+    user() {
+      return this.$store.state.user;
     },
-    data() {
-      return {
-        cartListloaded: false,
-        loadingCartList: false,
-        checkAll: false, // 是否全选
-        num: [], // mock数量选择
-        diffTop: 0,
-        check: [],
-        skuIdList: [],
-        showAddrSel: false,
-        isUseLocationCode: false, //是否使用城市定位
-        allCheckedSingleShop: [],
-        cartList: []//购物车商品列表
-      };
-    },
-
-    computed: {
-      user() {
-        return this.$store.state.user;
-      },
-      allCheckedGoodsSingleShop: {
-        //是否全选该商户下商品
-        get() {
-          const allCheckedGoodsSingleShop = [];
-          const shopIdMap = {};
-          // 拼接数据
-          this.checkedSkuList.map(checkedSkuId => {
-            const skuItem = this.getItem(checkedSkuId);
-            skuItem &&
-            this.$set(shopIdMap, skuItem.shopId, {
-              shopId: skuItem.shopId,
-              shopName: skuItem.shopName,
-              goodsType: skuItem.goodsType,
-              // 商品列表，如果不存在就取该商品
-              list: (shopIdMap[skuItem.shopId] &&
-                shopIdMap[skuItem.shopId].list &&
-                shopIdMap[skuItem.shopId].list.concat([skuItem])) || [skuItem]
-            });
-          });
-
-          // 校验是否选择该店铺下的商品都被选中
-          Object.keys(shopIdMap).map(shopId => {
-            const targetShop = this.cartListByShop.find(shopItem => {
-              return shopItem.shopId === shopId;
-            });
-            if (shopIdMap[shopId].list.length === targetShop.list.length) {
-              allCheckedGoodsSingleShop.push(shopId);
-            }
-          });
-          return allCheckedGoodsSingleShop;
-        },
-        set(val) {
-          this.checkedSkuList = [];
-          val.forEach(shopId => {
-            const targetShop = this.cartListByShop.find(shopItem => {
-              return shopItem.shopId === shopId;
-            });
-
-            const skuIdList = targetShop.list.map(goods => {
-              return goods.skuId;
-            });
-            this.checkedSkuList = this.checkedSkuList.concat(skuIdList);
-          });
-        }
-      },
-      allCheckedGoods: {
-        //是否全选购物车商品
-        get() {
-          const allCheckedGoods = [];
-          if (
-            this.checkedSkuList.length === this.cartList.length &&
-            this.cartList.length > 0
-          ) {
-            allCheckedGoods.push("all");
-          }
-          return allCheckedGoods;
-        },
-        set(val) {
-          const skuIdList = this.cartList.map(goods => {
-            return goods.skuId;
-          });
-          this.checkedSkuList = val.length ? skuIdList : [];
-        }
-      },
-      checkedSkuList: {
-        get() {
-          return this.getCheckedItems().map(item => {
-            return item && item.skuId;
-          });
-        },
-        set(val) {
-          this.updateItemsChecked(val);
-        }
-      },
-      location() {
-        return this.$store.state.locationCity;
-      },
-      ...mapState("user", {
-        userInfo: state => state
-      }),
-      ...mapState("cart", ["checkedList"]),
-      ...mapGetters("cart", {
-        getItem: "getItem",
-        getCheckedItems: "getCheckedItems",
-        cartListByShop: "cartListByShop"
-      }),
-      ...mapGetters("address", {
-        addressList: "list"
-      })
-    },
-    methods: {
-      ...mapActions("user", [
-        "addCollection",
-        "getCollection",
-        "deleteCollection"
-      ]),
-      ...mapMutations("address", ["setDefault", "setSelectedAddress"]),
-      ...mapActions("address", {
-        loadAddressList: "loadList"
-      }),
-      ...mapActions("orders", ["addOrder"]),
-      ...mapMutations("cart", [
-        "update",
-        "updateItemsChecked",
-        "add2PlaceOrderItems"
-      ]),
-      ...mapActions("cart", [
-        "updateCollect",
-        "updateSkuQuantity",
-        "loadList",
-        "deleteItemByGroup"
-      ]),
-      async handleInput({ skuId, quantity }) {
-        try {
-          // 因为input-number在setValue跟watch value变化都会发input事件
-          // 所以需要判断quantity是否与当前商品一致，如一致则无需触发更新接口
-          const currentSku = this.getItem(skuId);
-          if (currentSku.quantity === quantity) {
-            return;
-          }
-          await this.updateSkuQuantity({ skuId, quantity });
-        } catch (e) {
-          throw e;
-        }
-      },
-      isSelfSale(item) {
-        return item.shopType === "SELF";
-      },
-      getCart() {
-        const loading = this.$loading({
-          text: "Loading",
-          spinner: "el-icon-loading"
-        });
-        let query = {
-          userid: this.$store.state.user.id,
-          page: 1
-        }
-        this.$axios.$get(`${cartList}?${qs.stringify(query)}`)
-          .then(res => {
-            this.cartList = res
-          })
-          .catch(err => {
-            if (err.response.status === 401) {
-              // 权限问题，统一处理
-              return;
-            }
-            this.$message.error("获取购物车列表失败");
-          })
-          .finally(() => {
-            loading.close();
-            this.cartListloaded = true;
-            this.cartListLoading = false;
-            // 更新一次选中状态
-            this.updateItemsChecked(this.checkedSkuList);
-          });
-      },
-
-      deleteGoods(skuId, index) {
-        this.$confirm("是否确认删除")
-          .then(res => {
-            this.deleteGoodsItem([skuId]);
-            done();
-          })
-          .catch(() => {});
-      },
-      deleteSelectGoods() {
-        if (!this.checkedSkuList.length) {
-          this.$message({
-            showClose: true,
-            message: "请选择商品",
-            type: "error"
-          });
+    // allCheckedGoodsSingleShop: {
+    //   //是否全选该商户下商品
+    //   get() {
+    //     const allCheckedGoodsSingleShop = [];
+    //     const shopIdMap = {};
+    //     // 拼接数据
+    //     this.checkedSkuList.map(checkedSkuId => {
+    //       const skuItem = this.getItem(checkedSkuId);
+    //       skuItem &&
+    //       this.$set(shopIdMap, skuItem.shopId, {
+    //         shopId: skuItem.shopId,
+    //         shopName: skuItem.shopName,
+    //         goodsType: skuItem.goodsType,
+    //         // 商品列表，如果不存在就取该商品
+    //         list: (shopIdMap[skuItem.shopId] &&
+    //           shopIdMap[skuItem.shopId].list &&
+    //           shopIdMap[skuItem.shopId].list.concat([skuItem])) || [skuItem]
+    //       });
+    //     });
+    //
+    //     // 校验是否选择该店铺下的商品都被选中
+    //     Object.keys(shopIdMap).map(shopId => {
+    //       const targetShop = this.cartListByShop.find(shopItem => {
+    //         return shopItem.shopId === shopId;
+    //       });
+    //       if (shopIdMap[shopId].list.length === targetShop.list.length) {
+    //         allCheckedGoodsSingleShop.push(shopId);
+    //       }
+    //     });
+    //     return allCheckedGoodsSingleShop;
+    //   },
+    //   set(val) {
+    //     this.checkedSkuList = [];
+    //     val.forEach(shopId => {
+    //       const targetShop = this.cartListByShop.find(shopItem => {
+    //         return shopItem.shopId === shopId;
+    //       });
+    //
+    //       const skuIdList = targetShop.list.map(goods => {
+    //         return goods.goodid;
+    //       });
+    //       this.checkedSkuList = this.checkedSkuList.concat(skuIdList);
+    //     });
+    //   }
+    // },
+    allCheckedGoods: {
+      //是否全选购物车商品
+      get() {
+        if (this.cartList.length == 0) {
           return;
         }
-        this.$confirm("是否确认删除选中商品")
-          .then(res => {
-            this.deleteGoodsItem(this.checkedSkuList);
-            done();
-          })
-          .catch(() => {});
-      },
-
-      async collectGoods(skuIdList) {
-        const loading = this.$loading({
-          lock: true,
-          text: "Loading",
-          spinner: "el-icon-loading"
-        });
-        try {
-          let rst = await this.$store.dispatch(
-            "user/addCollection",
-            skuIdList.map(skuId => {
-              const goods = this.getItem(skuId);
-              return {
-                accountId: this.$store.state.user.id,
-                shopId: goods.shopId, //店铺id，非必须
-                itemId: goods.itemId,
-                skuId: goods.skuId,
-                productPhoto: (goods.imgUrl && goods.imgUrl.split(",")[0]) || "",
-                price: goods.priceMoney,
-                name: goods.itemName
-              };
-            })
-          );
-          skuIdList.forEach((id, index) => {
-            this.updateCollect({ skuId: id, isCollect: rst[index].id });
-          });
-          this.$message({
-            showClose: true,
-            message: "收藏成功",
-            type: "success"
-          });
-        } catch (e) {
-          this.$message({
-            showClose: true,
-            message: "收藏失败，请稍后再试",
-            type: "error"
-          });
+        let allCheckedGoods = [];
+        if (this.checkedSkuList.length === this.cartList.length) {
+          allCheckedGoods.push("all");
         }
-
-        loading.close();
+        return allCheckedGoods;
       },
-
-      collectGoodsItem(item) {
-        this.collectGoods([item.skuId]);
-      },
-
-      // 选中商品加入我的收藏
-      async collectSelectGoods(val) {
-        if (!this.checkedSkuList.length) {
-          this.$message({
-            showClose: true,
-            message: "请选择商品",
-            type: "error"
+      set(val) {
+        if (this.cartList.length > 0 && val) {
+          let skuIdList = this.cartList.map(goods => {
+            return goods.goodid;
           });
-          return;
+          this.checkedSkuList = skuIdList;
+        } else if (this.cartList.length > 0 && !val) {
+          this.checkedSkuList.length = 0;
         }
-        this.collectGoods(this.checkedSkuList);
-      },
-      async deleteGoodsItem(skuIdList) {
-        let ids = { skuIdList: skuIdList };
-
-        this.deleteItemByGroup(ids)
-          .then(resp => {
-            remove(this.checkedSkuList, skuId => {
-              return skuIdList.find(id => {
-                return skuId === id;
-              });
-            });
-          })
-          .catch(() => {});
-      },
-
-      async clearCart(val) {
-        this.$confirm("是否确认清空购物车")
-          .then(res => {
-            let ids = { skuIdList: [] };
-            this.cartList.forEach(item => {
-              ids.skuIdList.push(item.skuId);
-            });
-
-            this.deleteItemByGroup(ids)
-              .then(resp => {
-                this.checkedSkuList = [];
-              })
-              .catch(() => {});
-            done();
-          })
-          .catch(() => {});
-        // this.$store.dispatch("cart/deleteItemByGroup", ids);
-      },
-
-
-      fixedScroll() {
-        var scrollT =
-          document.body.scrollTop || document.documentElement.scrollTop; //兼容处理
-        var currtTop = document.documentElement.clientHeight + scrollT;
-        var footerHeight = document.getElementsByClassName("main-footer")[0]
-          .offsetHeight;
-        if (currtTop >= document.body.scrollHeight - footerHeight) {
-          this.diffTop = footerHeight - (document.body.scrollHeight - currtTop);
-        } else {
-          this.diffTop = 0;
-        }
-      },
-      closeTab() {
-        this.showAddrSel = false;
-      },
-      onClickGoods(item) {
-        // 已下架商品不可跳转
-        // if (item.status !== "on") {
-        //   return;
-        // }
-
-        this.$router.push({
-          path: "/detail",
-          query: {
-            id: item.goodid,
-          }
-        });
-      },
-      isItemActive(item) {
-        // 返回商品是否是有效状态
-        return !(item.status !== "on" || item.inventory === 0 || !item.isSupport);
       }
     },
-    async mounted() {
-      // window.that = this;
-      // 解决滚动条触底问题
-      window.addEventListener("scroll", this.fixedScroll, false);
-      // 加载默认地址
-      this.loadAddressList();
-      this.getCart();
-      // this.initDeliveryCity();
-    },
-    created() {
-      this.sortBy = sortBy;
-      this.getPicture = getPicture;
+    ...mapState("user", {
+      userInfo: state => state
+    }),
+    ...mapState("cart", ["checkedList"]),
+    ...mapGetters("cart", {
+      getItem: "getItem",
+      getCheckedItems: "getCheckedItems",
+      cartListByShop: "cartListByShop"
+    }),
+    ...mapGetters("address", {
+      addressList: "list"
+    })
+  },
+  methods: {
+    ...mapActions("user", [
+      "addCollection",
+      "getCollection",
+      "deleteCollection"
+    ]),
+    ...mapMutations("address", ["setDefault", "setSelectedAddress"]),
+    ...mapActions("address", {
+      loadAddressList: "loadList"
+    }),
+    ...mapActions("orders", ["addOrder"]),
+    ...mapMutations("cart", [
+      "update",
+      "updateItemsChecked",
+      "add2PlaceOrderItems"
+    ]),
+    getCart() {
+      const loading = this.$loading({
+        text: "Loading",
+        spinner: "el-icon-loading"
+      });
+      let query = {
+        userid: this.$store.state.user.id,
+        page: 1
+      };
+      this.$axios
+        .$get(`${cartList}?${qs.stringify(query)}`)
+        .then(res => {
+          this.cartList = res;
+        })
+        .catch(err => {
+          if (err.response.status === 401) {
+            // 权限问题，统一处理
+            return;
+          }
+          this.$message.error("获取购物车列表失败");
+        })
+        .finally(() => {
+          loading.close();
+        });
     },
 
-    beforeDestroy() {
-      window.removeEventListener("scroll", this.fixedScroll, false);
+    deleteGoods(skuId, index) {
+      this.$confirm("是否确认删除")
+        .then(res => {
+          this.deleteGoodsItem([skuId]);
+        })
+        .catch(() => {});
+    },
+    deleteSelectGoods() {
+      if (!this.checkedSkuList.length) {
+        this.$message({
+          showClose: true,
+          message: "请选择商品",
+          type: "error"
+        });
+        return;
+      }
+      this.$confirm("是否确认删除选中商品")
+        .then(res => {
+          this.deleteGoodsItem(this.checkedSkuList);
+        })
+        .catch(() => {});
+    },
+    async deleteGoodsItem(skuIdList) {
+      this.$axios
+        .$post(deleteCartGood, {
+          skuIdList: skuIdList
+        })
+        .then(res => {
+          if (res == "error") {
+            this.$message.error("删除失败，请稍后再试");
+            return;
+          }
+          this.$message.success("删除成功");
+          this.getCart();
+        });
+    },
+
+    async clearCart(val) {
+      this.$confirm("是否确认清空购物车")
+        .then(res => {
+          let ids = [];
+          this.cartList.forEach(item => {
+            ids.push(item.goodid);
+          });
+          this.deleteGoodsItem(ids)
+            .then(resp => {
+              this.checkedSkuList = [];
+            })
+            .catch(() => {});
+          done();
+        })
+        .catch(() => {});
+    },
+
+    fixedScroll() {
+      var scrollT =
+        document.body.scrollTop || document.documentElement.scrollTop; //兼容处理
+      var currtTop = document.documentElement.clientHeight + scrollT;
+      var footerHeight = document.getElementsByClassName("main-footer")[0]
+        .offsetHeight;
+      if (currtTop >= document.body.scrollHeight - footerHeight) {
+        this.diffTop = footerHeight - (document.body.scrollHeight - currtTop);
+      } else {
+        this.diffTop = 0;
+      }
+    },
+    closeTab() {
+      this.showAddrSel = false;
+    },
+    onClickGoods(item) {
+      // 已下架商品不可跳转
+      // if (item.status !== "on") {
+      //   return;
+      // }
+
+      this.$router.push({
+        path: "/detail",
+        query: {
+          id: item.goodid
+        }
+      });
+    },
+    isItemActive(item) {
+      // 返回商品是否是有效状态
+      return !(item.status !== "on" || item.inventory === 0 || !item.isSupport);
     }
-  };
+  },
+  async mounted() {
+    // window.that = this;
+    // 解决滚动条触底问题
+    window.addEventListener("scroll", this.fixedScroll, false);
+    // 加载默认地址
+    this.loadAddressList();
+    this.getCart();
+    // this.initDeliveryCity();
+  },
+  created() {
+    this.sortBy = sortBy;
+    this.getPicture = getPicture;
+  },
+
+  beforeDestroy() {
+    window.removeEventListener("scroll", this.fixedScroll, false);
+  }
+};
 </script>
 <!-- no scoped版本 -->
 <style lang="stylus">

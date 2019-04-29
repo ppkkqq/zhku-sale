@@ -5,7 +5,7 @@
 
         <div class="order-head">
           <div class="head-item" style="width: 310px">商品详情</div>
-          <div class="head-item" style="width: 125px">评价内容</div>
+          <div class="head-item" style="width: 125px;">评价内容</div>
           <div class="head-item" style="width: 120px">晒图</div>
         </div>
         <div class="empty-box" v-if="isEmpty">暂无数据</div>
@@ -30,12 +30,9 @@
               </div>
             </div>
             <div class="order-item-box">
-              <span class="text">{{pItem.commentContent}}</span>
+              <div class="text" style="width: 100%;">{{pItem.commentContent}}</div>
             </div>
             <div class="order-item-box">
-              <img :src="getPicture+pItem.commentPic1" alt="#">
-              <viewer height="80px" width="80px" :src="getPicture+pItem.commentPic1"
-              />
               <viewer v-if="pItem.commentPic1"
                       :height="'60px'" :width="'60px'" :src="getPicture+'5cb2fb1a88ccd.png'"/>
               <viewer class="view" v-if="pItem.commentPic2"
@@ -62,58 +59,68 @@
 </template>
 
 <script>
-  import { orderDetail, tripBaseUrl } from "@/const/path";
-  import { goodsDetail, addCart, getTourismOrderList,getOrderList,getPicture,getCommentList } from "@/const/api";
-  import { resolveImg } from "@/utils";
-  import Viewer from "viewer";
-  export default {
-    name: "commentList",
-    layout: "personal-layout",
-    components: {
-      Viewer
-    },
-    data() {
-      return {
-        activeTab: 0,
-        currentPage: 1,
-        commentList: [],
-        total: 0,
-        pageSize: 10,
-        isEmpty: false,
-        healthCaresEmpty: false,
-        currentTab: 1,
-        healthCaresList: []
-      };
-    },
-    computed: {
-      user() {
-        return this.$store.state.user.id;
-      }
-    },
-    mounted() {
-      this.getMyComment();
-    },
-    methods: {
-      async getMyComment() {
-        //type,code,mobile,password
-        let data = {
-          page: this.currentPage,
-          pageSize: 5
-        };
-        const rst = await this.$axios.$get(`${getCommentList}?userid=${this.user}`);
-        console.log(12345,rst)
-        this.commentList = rst;
-        this.total = rst.total;
-        this.pageSize = rst.pageSize;
-        if (!this.commentList || !this.commentList.length)
-          return (this.isEmpty = true);
-        this.isEmpty = false;
-      }
-    },
-    created() {
-      this.getPicture = getPicture;
+import { orderDetail, tripBaseUrl } from "@/const/path";
+import {
+  goodsDetail,
+  addCart,
+  getTourismOrderList,
+  getOrderList,
+  getPicture,
+  getCommentList
+} from "@/const/api";
+import { resolveImg } from "@/utils";
+import Viewer from "viewer";
+console.log(Viewer);
+export default {
+  name: "commentList",
+  layout: "personal-layout",
+  components: {
+    viewer: Viewer
+  },
+  data() {
+    return {
+      activeTab: 0,
+      currentPage: 1,
+      commentList: [],
+      total: 0,
+      pageSize: 10,
+      isEmpty: false,
+      healthCaresEmpty: false,
+      currentTab: 1,
+      healthCaresList: []
+    };
+  },
+  computed: {
+    user() {
+      return this.$store.state.user.id;
     }
-  };
+  },
+  mounted() {
+    this.getMyComment();
+  },
+  methods: {
+    async getMyComment() {
+      //type,code,mobile,password
+      let data = {
+        page: this.currentPage,
+        pageSize: 5
+      };
+      const rst = await this.$axios.$get(
+        `${getCommentList}?userid=${this.user}`
+      );
+      console.log(12345, rst);
+      this.commentList = rst;
+      this.total = rst.total;
+      this.pageSize = rst.pageSize;
+      if (!this.commentList || !this.commentList.length)
+        return (this.isEmpty = true);
+      this.isEmpty = false;
+    }
+  },
+  created() {
+    this.getPicture = getPicture;
+  }
+};
 </script>
 
 <style scoped lang="stylus">
@@ -202,6 +209,7 @@
           flexCenter();
 
           .text {
+            width: 100%!important
             font-size: 13px;
             color: #999;
             margin-right: 40px;
@@ -314,11 +322,11 @@
         }
 
         .order-item-box {
-          width: 260px;
+          width: 100%;
           text-align: center;
           border-right: 1px solid #e6e6e6;
           padding-top: 18px;
-
+          display: flex;
           &:last-child {
             border-right: none;
           }

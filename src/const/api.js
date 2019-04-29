@@ -196,7 +196,6 @@ export const findAddress = STOCK_CENTER + "/address/findAddress";
 export const findChildAddressByType =
   STOCK_CENTER + "/address/findChildAddressByType";
 
-
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1my
 export const localhost = "http://localhost/web_ks";
 
@@ -214,8 +213,8 @@ export const getHistory = localhost + "/getHistory.php";
 export const addHistory = localhost + "/addHistory.php";
 export const getOrderList = localhost + "/orderList.php";
 export const getOrderDetail = localhost + "/orderDetail.php";
-export const commentList = localhost + "/commentList.php";//卖家
-export const getCommentList = localhost + "/myCommentList.php";//买家
+export const commentList = localhost + "/commentList.php"; //卖家
+export const getCommentList = localhost + "/myCommentList.php"; //买家
 export const getPriceList = localhost + "/getPriceList.php";
 //卖家拍卖中的商品列表
 export const getProductList = localhost + "/getProductList.php";
@@ -224,3 +223,7 @@ export const deleteAddress = localhost + "/deleteAddress.php";
 export const newAddress = localhost + "/newAddress.php";
 export const newComment = localhost + "/newComment.php";
 export const addCommentPic = localhost + "/addCommentPic.php";
+export const newOrder = localhost + "/newOrder.php";
+export const addProductPic = localhost + "/addProductPic.php";
+export const newProduct = localhost + "/newProduct.php";
+export const deleteCartGood = localhost + "/deleteCartGood.php";

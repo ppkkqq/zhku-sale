@@ -38,7 +38,8 @@
             </div>
             <div class="order-item-box">
               <p class="text">
-                <nuxt-link class="href-class" :to="'/personal/judge/'+pItem.goodid">取消拍卖</nuxt-link>
+                <nuxt-link class="href-class" :to="'/personal/judge/'+pItem.goodid" v-if="pItem.lasttime > currentTime && pItem.starttime < currentTime">取消拍卖</nuxt-link>
+                <span v-else>无法取消</span>
               </p>
             </div>
           </div>
@@ -60,70 +61,79 @@
 </template>
 
 <script>
-  import { orderDetail, tripBaseUrl } from "@/const/path";
-  import { goodsDetail, addCart, getTourismOrderList,getProductList,getPicture } from "@/const/api";
-  import { resolveImg } from "@/utils";
-  export default {
-    name: "selling",
-    layout: "seller-layout",
-    components: {},
-    data() {
-      return {
-        activeTab: 0,
-        currentPage: 1,
-        productList: [],
-        total: 0,
-        pageSize: 5,
-        isEmpty: false,
-        healthCaresEmpty: false,
-        healthCaresList: []
-      };
-    },
-    computed: {
-      user() {
-        return this.$store.state.user.id;
-      }
-    },
-    mounted() {
-      this.getMyOrders();
-    },
-    methods: {
-      async cancelOrder(orderId) {
-        this.$confirm("是否确认取消")
-          .then(() => {
-            this.$store
-              .dispatch("orders/cancelOrder", orderId)
-              .then(rst => {
-                if (rst && rst.result == "true") {
-                  this.$message.success("订单取消成功！");
-                  this.getMyOrders();
-                }
-              })
-              .catch(() => {});
-
-            done();
-          })
-          .catch(() => {});
-      },
-      async getMyOrders() {
-        const rst = await this.$axios.$get(`${getProductList}?userid=${this.user}&page=${this.currentPage}`);
-        if (rst != 'error' && rst != 'noProduct') {
-          console.log(12345,rst)
-          this.productList = rst.list;
-          this.total = rst.total;
-        }
-        if (!this.productList || !this.productList.length)
-          return (this.isEmpty = true);
-        this.isEmpty = false;
-      },
-      resolveImg(item) {
-        return resolveImg(item.productImage);
-      }
-    },
-    created() {
-      this.getPicture = getPicture;
+import { orderDetail, tripBaseUrl } from "@/const/path";
+import {
+  goodsDetail,
+  addCart,
+  getTourismOrderList,
+  getProductList,
+  getPicture
+} from "@/const/api";
+import { resolveImg } from "@/utils";
+export default {
+  name: "selling",
+  layout: "seller-layout",
+  components: {},
+  data() {
+    return {
+      activeTab: 0,
+      currentPage: 1,
+      productList: [],
+      total: 0,
+      pageSize: 5,
+      isEmpty: false,
+      healthCaresEmpty: false,
+      healthCaresList: []
+    };
+  },
+  computed: {
+    user() {
+      return this.$store.state.user.id;
     }
-  };
+  },
+  mounted() {
+    this.getMyOrders();
+  },
+  methods: {
+    async cancelOrder(orderId) {
+      this.$confirm("是否确认取消")
+        .then(() => {
+          this.$store
+            .dispatch("orders/cancelOrder", orderId)
+            .then(rst => {
+              if (rst && rst.result == "true") {
+                this.$message.success("订单取消成功！");
+                this.getMyOrders();
+              }
+            })
+            .catch(() => {});
+
+          done();
+        })
+        .catch(() => {});
+    },
+    async getMyOrders() {
+      const rst = await this.$axios.$get(
+        `${getProductList}?userid=${this.user}&page=${this.currentPage}`
+      );
+      if (rst != "error" && rst != "noProduct") {
+        console.log(12345, rst);
+        this.productList = rst.list;
+        this.total = rst.total;
+      }
+      if (!this.productList || !this.productList.length)
+        return (this.isEmpty = true);
+      this.isEmpty = false;
+    },
+    resolveImg(item) {
+      return resolveImg(item.productImage);
+    }
+  },
+  created() {
+    this.getPicture = getPicture;
+    this.currentTime = new Date().getTime();
+  }
+};
 </script>
 
 <style scoped lang="stylus">

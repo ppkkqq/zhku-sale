@@ -150,7 +150,7 @@ export default {
           break;
         case "1":
           this.$router.push({
-            path: "/shop"
+            path: "/serchShop"
           });
           break;
         case "2":

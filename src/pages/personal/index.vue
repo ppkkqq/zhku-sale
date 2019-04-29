@@ -43,8 +43,8 @@
             </div>
             <div class="order-item-box">
               <p class="text">
-                <nuxt-link class="href-class" :to="'/personal/judge/'+pItem.goodid" v-if="pItem.isComment">评价</nuxt-link>
-                <span v-else>已评价</span>
+                <nuxt-link class="href-class" :to="'/personal/judge/'+pItem.goodid" v-if="pItem.isComment == 0" style="color: #0f4511">评价</nuxt-link>
+                <span v-if="pItem.isComment == 1">已评价</span>
               </p>
             </div>
           </div>
@@ -66,77 +66,76 @@
 </template>
 
 <script>
-  import { mapMutations, mapActions } from "vuex";
-  import { orderDetail, tripBaseUrl } from "@/const/path";
-  import { goodsDetail, addCart, getTourismOrderList,getOrderList,getPicture } from "@/const/api";
-  import { resolveImg } from "@/utils";
-  export default {
-    name: "myOrder",
-    layout: "personal-layout",
-    components: {},
-    data() {
-      return {
-        activeTab: 0,
-        currentPage: 1,
-        orderList: [],
-        total: 0,
-        pageSize: 10,
-        isEmpty: false,
-        healthCaresEmpty: false,
-        healthCaresList: []
-      };
-    },
-    computed: {
-      user() {
-        return this.$store.state.user.id;
-      }
-    },
-    mounted() {
-      this.getMyOrders();
-    },
-    methods: {
-      ...mapMutations("cart", ["update"]),
-      ...mapActions("cart", ["add2Cart"]),
-      async cancelOrder(orderId) {
-        this.$confirm("是否确认取消")
-          .then(() => {
-            this.$store
-              .dispatch("orders/cancelOrder", orderId)
-              .then(rst => {
-                if (rst && rst.result == "true") {
-                  this.$message.success("订单取消成功！");
-                  this.getMyOrders();
-                }
-              })
-              .catch(() => {});
-
-            done();
-          })
-          .catch(() => {});
-      },
-      async getMyOrders() {
-        //type,code,mobile,password
-        let data = {
-          page: this.currentPage,
-          pageSize: 5
-        };
-        const rst = await this.$axios.$get(`${getOrderList}?userid=${this.user}`);
-        console.log(12345,rst)
-        this.orderList = rst;
-        this.total = rst.total;
-        this.pageSize = rst.pageSize;
-        if (!this.orderList || !this.orderList.length)
-          return (this.isEmpty = true);
-        this.isEmpty = false;
-      },
-      resolveImg(item) {
-        return resolveImg(item.productImage);
-      }
-    },
-    created() {
-      this.getPicture = getPicture;
+import { mapMutations, mapActions } from "vuex";
+import { orderDetail, tripBaseUrl } from "@/const/path";
+import {
+  goodsDetail,
+  addCart,
+  getTourismOrderList,
+  getOrderList,
+  getPicture,
+  newOrder
+} from "@/const/api";
+import { resolveImg } from "@/utils";
+export default {
+  name: "myOrder",
+  layout: "personal-layout",
+  components: {},
+  data() {
+    return {
+      activeTab: 0,
+      currentPage: 1,
+      orderList: [],
+      total: 0,
+      pageSize: 10,
+      isEmpty: false,
+      healthCaresEmpty: false,
+      healthCaresList: []
+    };
+  },
+  computed: {
+    user() {
+      return this.$store.state.user.id;
     }
-  };
+  },
+  mounted() {
+    this.createNewOrder();
+  },
+  methods: {
+    ...mapMutations("cart", ["update"]),
+    ...mapActions("cart", ["add2Cart"]),
+    async getMyOrders() {
+      //type,code,mobile,password
+      let data = {
+        page: this.currentPage,
+        pageSize: 5
+      };
+      const rst = await this.$axios.$get(`${getOrderList}?userid=${this.user}`);
+      console.log(12345, rst);
+      this.orderList = rst;
+      this.total = rst.total;
+      this.pageSize = rst.pageSize;
+      if (!this.orderList || !this.orderList.length)
+        return (this.isEmpty = true);
+      this.isEmpty = false;
+    },
+    //是否有新订单生成
+    async createNewOrder() {
+      await this.$axios.$get(`${newOrder}?userid=${this.user}`).then(res => {
+        if (res == "1") {
+          this.$message.success(`您有新订单生成，请及时处理`);
+        }
+        this.getMyOrders();
+      });
+    },
+    resolveImg(item) {
+      return resolveImg(item.productImage);
+    }
+  },
+  created() {
+    this.getPicture = getPicture;
+  }
+};
 </script>
 
 <style scoped lang="stylus">

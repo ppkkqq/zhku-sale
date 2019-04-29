@@ -65,7 +65,14 @@
 
 <script>
 import upload from "@/components/upload";
-import { addComments, updateOrderStatusCommented,getOrderDetail,getPicture,newComment,addCommentPic } from "@/const/api";
+import {
+  addComments,
+  updateOrderStatusCommented,
+  getOrderDetail,
+  getPicture,
+  newComment,
+  addCommentPic
+} from "@/const/api";
 
 export default {
   name: "judge",
@@ -97,7 +104,7 @@ export default {
   },
   mounted() {
     if (!this.user) {
-      this.$router.push({ path: '/login' })
+      this.$router.push({ path: "/login" });
     }
     if (!this.$route.params || !this.$route.params.id) {
       return;
@@ -108,13 +115,15 @@ export default {
   },
   methods: {
     handleRemove(file, fileList) {
-      this.imageList = fileList
+      this.imageList = fileList;
     },
     handleChange(file, fileList) {
-      this.imageList = fileList
+      this.imageList = fileList;
     },
     async getMyOrderDetail() {
-      let rst = await this.$axios.$get(`${getOrderDetail}?user=${this.user}&goodid=${this.$route.params.id}`);
+      let rst = await this.$axios.$get(
+        `${getOrderDetail}?user=${this.user}&goodid=${this.$route.params.id}`
+      );
       this.orderDetail = rst;
     },
     //上传图片
@@ -132,37 +141,36 @@ export default {
         type: "warning"
       }).then(() => {
         let formData = new FormData(event.target);
-        this.$axios.$post(addCommentPic, formData)
-          .then(res => {
-            if (res == 'error') {
-              this.$message.error("图片上传失败，请稍后再试");
-              return false
-            } else {
-              this.picList = res
-              this.addComments()
-            }
-          })
-      })
-        return false
-  },
-  async addComments() {
-      this.$axios.$post(newComment, {
-        user: this.user,
-        goodid: this.$route.params.id,
-        score: this.score,
-        content: this.content,
-        images: this.picList
-      })
+        this.$axios.$post(addCommentPic, formData).then(res => {
+          if (res == "error") {
+            this.$message.error("图片上传失败，请稍后再试");
+            return false;
+          } else {
+            this.picList = res;
+            this.addComments();
+          }
+        });
+      });
+      return false;
+    },
+    async addComments() {
+      this.$axios
+        .$post(newComment, {
+          user: this.user,
+          goodid: this.$route.params.id,
+          score: this.score,
+          content: this.content,
+          images: this.picList
+        })
         .then(res => {
-          if (res == 'success') {
+          if (res == "success") {
             this.$message.success("评价发布成功");
-            this.$router.push({ path: "/personal" })
-          }else{
+            this.$router.push({ path: "/personal" });
+          } else {
             this.$message.error("评价发布失败，请稍后再试");
           }
         })
-      .catch(() => {
-      })
+        .catch(() => {});
     }
   },
   created() {
