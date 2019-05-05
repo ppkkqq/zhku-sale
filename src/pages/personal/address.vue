@@ -82,7 +82,7 @@
 import VDistpicker from "v-distpicker";
 import { mapState, mapGetters, mapActions, mapMutations } from "vuex";
 import youzanLocation from "@/const/arealist";
-import { getAddressList,deleteAddress,newAddress } from "@/const/api";
+import { getAddressList, deleteAddress, newAddress } from "@/const/api";
 import { mobileRule, passwordRule } from "@/const/rules";
 // import jdAddressSelect from "@/components/jd-address-select";
 
@@ -157,37 +157,36 @@ export default {
   },
   methods: {
     getAddressList() {
-      this.$axios.$get(`${getAddressList}?userid=${this.$store.state.user.id}`)
-        .then( res => {
-          this.addressList = res.list
-        })
+      this.$axios
+        .$get(`${getAddressList}?userid=${this.$store.state.user.id}`)
+        .then(res => {
+          this.addressList = res.list;
+        });
     },
     commitAddress() {
-      this.tempAddress.userid = this.user
-      this.$axios.$post(newAddress,this.tempAddress)
-        .then( res => {
-          debugger
-          if( res != 'error'){
-            this.$message({
-              type: "success",
-              message: "创建成功！"
-            });
-            this.editDialogVisible = false;
-            this.getAddressList();
-          }else {
-            this.$message({
-              type: "error",
-              message: "创建失败，请稍后重试！"
-            });
-          }
-        })
+      this.tempAddress.userid = this.user;
+      this.$axios.$post(newAddress, this.tempAddress).then(res => {
+        if (res != "error") {
+          this.$message({
+            type: "success",
+            message: "创建成功！"
+          });
+          this.editDialogVisible = false;
+          this.getAddressList();
+        } else {
+          this.$message({
+            type: "error",
+            message: "创建失败，请稍后重试！"
+          });
+        }
+      });
     },
     go2new() {
       this.tempAddress = {
         shoujianren: "",
         tel: "",
         address: "",
-        default: 0,//默认为非默认地址
+        default: 0, //默认为非默认地址
         postalCode: ""
       };
       this.editDialogVisible = true;
@@ -199,9 +198,10 @@ export default {
         type: "warning"
       }).then(() => {
         // this.$store.dispatch("address/deleteItem", id);
-        this.$axios.$post(`${deleteAddress}?addressid=${id}`)
-          .then( res => {
-            if(res != 'error'){
+        this.$axios
+          .$post(`${deleteAddress}?addressid=${id}`)
+          .then(res => {
+            if (res != "error") {
               this.$message({
                 type: "success",
                 message: "删除成功！"
@@ -214,13 +214,13 @@ export default {
               message: "删除失败，请稍后重试！"
             });
           })
-          .catch( () => {})
+          .catch(() => {});
       });
     },
     async onSetDefault(id) {
       // let res = await setDefaultAddress(id, { token: this.user.token });
       await this.$store.dispatch("address/setDefaultStatus", id);
-    },
+    }
     // async onEditInvoice() {},
     // getCodeByName(locationObj, name, isCity) {
     //   let rtnCode = "";

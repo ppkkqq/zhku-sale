@@ -227,3 +227,7 @@ export const newOrder = localhost + "/newOrder.php";
 export const addProductPic = localhost + "/addProductPic.php";
 export const newProduct = localhost + "/newProduct.php";
 export const deleteCartGood = localhost + "/deleteCartGood.php";
+export const addRegister = localhost + "/addRegister.php";
+export const isSeller = localhost + "/isSeller.php";
+export const addSellerPic = localhost + "/addSellerPic.php";
+export const commitSeller = localhost + "/commitSeller.php";

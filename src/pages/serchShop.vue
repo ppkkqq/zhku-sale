@@ -25,7 +25,7 @@
     <div class="navList">
       <ul class="navList-box">
         <li><nuxt-link to="/" class="nav-link">首页</nuxt-link></li>
-        <li><nuxt-link to="/shop" class="activeA nav-link">电子商城</nuxt-link></li>
+        <li><nuxt-link to="/serchShop?day=today&page=1" class="activeA nav-link">电子商城</nuxt-link></li>
         <li><nuxt-link to="/about" class="nav-link">关于我们</nuxt-link></li>
       </ul>
     </div>
@@ -86,7 +86,7 @@ import indexHeader from "@/components/shop-header";
 import searchPanel from "@/components/search-panel";
 import mainSearchKx from "@/components/main-search-Kx";
 import cartSearchTitle from "@/components/cart-search-title";
-import { cartList,searchGoodsList,getPicture } from "@/const/api";
+import { cartList, searchGoodsList, getPicture } from "@/const/api";
 import indexFooter from "@/components/shop-footer";
 
 export default {
@@ -112,10 +112,10 @@ export default {
         // catalogId: "", //类目id
         search: "", //商品名
         batchId: "", //源通币id
-        type: ""//商品类目
+        type: "" //商品类目
       },
       goodsList: [],
-      filterOpts: ['不限','正在进行','即将开始','最近3天'],
+      filterOpts: ["不限", "正在进行", "即将开始", "最近3天"],
       selectedFilter: "composite",
       sortStatus: 0,
       searchHistoryList: [],
@@ -132,7 +132,7 @@ export default {
     this.getPicture = getPicture;
   },
   mounted() {
-    const { cateId, keyword,type } = this.$route.query;
+    const { cateId, keyword, type } = this.$route.query;
     this.searchParams.search = keyword;
     this.searchParams.type = type;
     // this.searchParams.catalogId = cateId;
@@ -150,25 +150,25 @@ export default {
       return this.currentPage != 1;
     },
     canSelectNext() {
-      return this.currentPage != this.goodsNum/10;
+      return this.currentPage != this.goodsNum / 10;
     }
   },
   methods: {
     goFilter(v) {
-      let queryObj = {}
+      let queryObj = {};
       this.currentPage = 1;
       switch (v) {
         case "不限":
-          queryObj = {day: 'all'};
+          queryObj = { day: "all" };
           break;
         case "正在进行":
-          queryObj = {day: 'today'};
+          queryObj = { day: "today" };
           break;
         case "即将开始":
-          queryObj = {day: 'tomorrow'};
+          queryObj = { day: "tomorrow" };
           break;
         case "最近3天":
-          queryObj = {day: 'day3'};
+          queryObj = { day: "day3" };
           break;
       }
       this.search(queryObj);
@@ -245,25 +245,61 @@ export default {
         );
       }
       try {
-        let rst
-        if(!this.$route.query.keyword && this.$route.query.type && !queryObj){
-          rst = await this.$axios.$get(`${searchGoodsList}?type=${this.$route.query.type}&day=all&page=${this.currentPage}`);
-        }else if(!this.$route.query.keyword && this.$route.query.type && queryObj){
-          rst = await this.$axios.$get(`${searchGoodsList}?type=${this.$route.query.type}&day=${queryObj['day']}&page=${this.currentPage}`);
-        }else if (this.$route.query.keyword && !this.$route.query.type && !queryObj){
-          rst = await this.$axios.$get(`${searchGoodsList}?keyword=${this.$route.query.keyword}&day=all&page=${this.currentPage}`);
-        }else if (this.$route.query.keyword && !this.$route.query.type && queryObj) {
-          rst = await this.$axios.$get(`${searchGoodsList}?keyword=${this.$route.query.keyword}&day=${queryObj['day']}&page=${this.currentPage}`);
-        }else if(queryObj) {
-          rst = await this.$axios.$get(`${searchGoodsList}?day=${queryObj['day']}&page=${this.currentPage}`)
-          this.$route.query.day = queryObj[day]
-        }else{
-          rst = await this.$axios.$get(`${searchGoodsList}?day=${this.$route.query.day}&page=${this.currentPage}`);
+        let rst;
+        if (!this.$route.query.keyword && this.$route.query.type && !queryObj) {
+          rst = await this.$axios.$get(
+            `${searchGoodsList}?type=${this.$route.query.type}&day=all&page=${
+              this.currentPage
+            }`
+          );
+        } else if (
+          !this.$route.query.keyword &&
+          this.$route.query.type &&
+          queryObj
+        ) {
+          rst = await this.$axios.$get(
+            `${searchGoodsList}?type=${this.$route.query.type}&day=${
+              queryObj["day"]
+            }&page=${this.currentPage}`
+          );
+        } else if (
+          this.$route.query.keyword &&
+          !this.$route.query.type &&
+          !queryObj
+        ) {
+          rst = await this.$axios.$get(
+            `${searchGoodsList}?keyword=${
+              this.$route.query.keyword
+            }&day=all&page=${this.currentPage}`
+          );
+        } else if (
+          this.$route.query.keyword &&
+          !this.$route.query.type &&
+          queryObj
+        ) {
+          rst = await this.$axios.$get(
+            `${searchGoodsList}?keyword=${this.$route.query.keyword}&day=${
+              queryObj["day"]
+            }&page=${this.currentPage}`
+          );
+        } else if (queryObj) {
+          rst = await this.$axios.$get(
+            `${searchGoodsList}?day=${queryObj["day"]}&page=${this.currentPage}`
+          );
+          this.$route.query.day = queryObj[day];
+        } else {
+          rst = await this.$axios.$get(
+            `${searchGoodsList}?day=${this.$route.query.day}&page=${
+              this.currentPage
+            }`
+          );
         }
-        if (!this.$route.query.keyword && !this.$route.query.type){
+        if (!this.$route.query.keyword && !this.$route.query.type) {
           let goodsNum, pageNumAll, goodsList, panel, currentPage;
           //获取到商品总数
-          goodsNum = await this.$axios.$get(`${searchGoodsList}?day=${this.$route.query.day}&page=all`);
+          goodsNum = await this.$axios.$get(
+            `${searchGoodsList}?day=${this.$route.query.day}&page=all`
+          );
 
           this.goodsNum = goodsNum;
           this.pageNumAll = pageNumAll;
@@ -272,7 +308,7 @@ export default {
           this.currentPage = currentPage;
         }
         loading.close();
-        console.log(55666,rst)
+        console.log(55666, rst);
         this.goodsList = rst;
       } catch (e) {
         loading.close();
@@ -317,14 +353,14 @@ export default {
       if (!this.canSelectPre) return;
       // this.searchParams.catalogId = this.$route.query.cateId;
       this.searchParams.page = this.currentPage - 1;
-      debugger
+      debugger;
       this.search();
     },
     goNextPage() {
       if (!this.canSelectNext) return;
       // this.searchParams.catalogId = this.$route.query.cateId;
       this.searchParams.page = this.currentPage + 1;
-      debugger
+      debugger;
       this.search();
     },
     async getCart() {

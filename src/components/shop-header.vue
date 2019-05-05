@@ -20,8 +20,8 @@
           <span class="sep"></span>
           <nuxt-link to="/personal" class="red" style="color: #888;">个人中心</nuxt-link>
           <span class="sep"></span>
-          <!--//todo:做if判断-->
-          <nuxt-link to="/seller" class="red" style="color: #888;">卖家中心</nuxt-link>
+          <nuxt-link to="/seller/commitSell" v-if="!isSeller" class="red" style="color: #888;">申请开店</nuxt-link>
+          <nuxt-link to="/seller" v-else class="red" style="color: #888;">卖家中心</nuxt-link>
         </template>
         <span class="sep"></span>
         <span class="text">帮助中心</span>
@@ -35,6 +35,7 @@
 <script>
 import { mapActions, mapState, mapGetters } from "vuex";
 import addressSelect from "@/components/address-select";
+import { isSeller } from "@/const/api";
 import cookie from "js-cookie";
 export default {
   name: "shop-header",
@@ -45,10 +46,20 @@ export default {
   data() {
     return {
       showAddrSel: false,
-      city: ""
+      city: "",
+      isSeller: false
     };
   },
   methods: {
+    getSeller() {
+      if (this.user) {
+        this.$axios.$get(`${isSeller}?userid=${this.user}`).then(res => {
+          if (res) {
+            this.isSeller = true;
+          }
+        });
+      }
+    },
     handleSelected(event) {
       this.$store.commit("update", { selectedCity: event.selected });
     },
@@ -66,7 +77,7 @@ export default {
     },
     closeTab() {
       this.showAddrSel = false;
-    },
+    }
     // hideSelect(city) {
     //   // this.city = city || this.city
     //   this.showAddrSel = false;
@@ -83,11 +94,11 @@ export default {
     //   };
     //   this.$store.commit("update", { selectedCity: selectedCity });
     // },
-    ...mapActions("user", ["logout"])
+    // ...mapActions("user", ["logout"])
   },
   computed: {
-    user: function() {
-      return this.$store.state.user;
+    user() {
+      return this.$store.state.user.id;
     },
     location() {
       return this.$store.state.locationCity;
@@ -102,7 +113,10 @@ export default {
       selectedAddress: "selectedAddress"
     })
   },
-  mounted() {}
+  mounted() {},
+  created() {
+    this.getSeller();
+  }
 };
 </script>
 

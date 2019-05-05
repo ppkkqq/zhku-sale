@@ -90,7 +90,7 @@
 <script>
 import { mapActions } from "vuex";
 import { mobileRule } from "@/const/rules";
-import { checkLoginMobile, verifySmsCode,loginUrl } from "@/const/api";
+import { checkLoginMobile, verifySmsCode, loginUrl } from "@/const/api";
 
 const CAPTCHA_TIMEOUT = 60;
 export default {
@@ -128,7 +128,7 @@ export default {
           `/mall-deepexi-member-center/api/v1/mcMemberAccounts/getValidateCode`
         )
         .then(res => {
-          console.log(333334,res)
+          console.log(333334, res);
           this.validateImageSrc =
             "data:image/png;base64," + res.payload.validateImageSrc;
           this.validateId = res.payload.validateId;
@@ -222,7 +222,7 @@ export default {
       this.judgeCode = true;
       let data = {
         user: this.mobile,
-        psw: this.password,
+        psw: this.password
       };
       if (!this.volidate()) {
         return;
@@ -233,19 +233,20 @@ export default {
         spinner: "el-icon-loading",
         background: "rgba(0, 0, 0, 0.05)"
       });
-      this.login(data)
-     // this.$axios.$post(loginUrl, data)
+      let rst = this.login(data);
+      rst
         .then(payload => {
-          if (payload == 'error') {
-            this.$message.error('请重新操作');
-          }else {
-            this.$message.success('登录成功');
+          if (payload == "error") {
+            //bug待解决
+            this.$message.error("用户名密码不正确");
+          } else {
+            this.$message.success("登录成功");
             this.$router.push("/");
           }
         })
         .catch(err => {
-            this.getCode();
-            this.$message.error('网络超时，请稍后重试');
+          this.getCode();
+          this.$message.error("网络超时，请稍后重试");
         })
         .finally(() => {
           loading.close();
@@ -402,7 +403,7 @@ export default {
     }
 
     .right .r-middle .button:active{
-      background-color:#bd122a !important;
+      background-color:#0f4511 !important;
     }
     .right .r-middle .notice{
       font-size: 12px;
@@ -426,7 +427,7 @@ export default {
         text-align: right;
         height: 48px;
         line-height: 48px;
-        color: $primary-start;
+        color: #0f4511;
         font-size: 16px;
         cursor: pointer;
       }

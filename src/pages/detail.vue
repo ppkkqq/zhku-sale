@@ -72,6 +72,7 @@
                   </el-option>
                 </el-select>
               </div>
+              <nuxt-link to="/personal/address">添加地址</nuxt-link>
             </el-tab-pane>
             <el-tab-pane label="临时地址">
               <el-form label-position="right" label-width="70px" :model="addressForm">
@@ -202,9 +203,12 @@
             <div class="segment" @click="goIntroduce('1')">商品介绍</div>
             <div class="segment" @click="goIntroduce('2')">竞价记录</div>
             <div class="segment" @click="goIntroduce('3')">买家评价</div>
-            <div class="segment-selected" @click="goIntroduce('4')">联系卖家</div>
+            <div class="segment-selected">
+                <a target="_blank" :href="'http://wpa.qq.com/msgrd?v=3&uin='+qqchar+'&site=qq&menu=yes'" style="color: #333;">
+                  联系卖家
+                </a>
+            </div>
           </div>
-          <div class="cards full-width" style="width: 990px;" v-html="goodsDetail.detail"></div>
         </div>
       </div>
       <div class="history">
@@ -328,7 +332,8 @@ export default {
       chooseAddr: "",
       currentTime: "",
       starttime: "",
-      lasttime: ""
+      lasttime: "",
+      qqchar: "947988502"
     };
   },
   created() {
@@ -425,6 +430,7 @@ export default {
           this.lasttime = Date.parse(this.goodsDetail.lasttime);
           this.leftTime = this.lasttime - new Date().getTime();
           this.myNewPrice = this.goodsDetail.price;
+          this.qqchar = this.goodsDetail.qqchar;
           if (!!this.goodsDetail.pic1) {
             this.photoes.length = 0;
             this.$set(this.photoes, "0", getPicture + this.goodsDetail.pic1);
