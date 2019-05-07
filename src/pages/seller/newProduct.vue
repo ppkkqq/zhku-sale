@@ -35,28 +35,19 @@
           <el-upload
             class="upload-demo"
             :action="123"
-            :multiple="multiple"
+            multiple="multiple"
             :on-change="handleChange1"
             :on-remove="handleRemove1"
             :file-list="imageList"
             list-type="picture">
-            <input type="file" required="required" name="pic[]" accept="image/*" multiple style="cursor: pointer;">
+            <input type="file" required="required" name="pic[]" accept="image/*" multiple="multiple" style="cursor: pointer;">
             <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
           </el-upload>
           <p class="cx-shai">最多可上传3张图片，每张图片大小不超过5M，支持bmp,gif,jpg,png,jpeg格式文件</p>
         </el-form-item>
         <el-form-item label="详情图">
-          <el-upload
-            class="upload-demo"
-            :action="123"
-            :multiple="multiple"
-            :on-change="handleChange2"
-            :on-remove="handleRemove2"
-            :file-list="detailImage"
-            list-type="picture">
             <input type="file" required="required" name="detailPic" accept="image/*" multiple style="cursor: pointer;">
             <div slot="tip" class="el-upload__tip">只能上传一个jpg/png文件，且不超过5000kb</div>
-          </el-upload>
         </el-form-item>
         <el-form-item label="商品介绍">
           <el-input type="textarea" :rows="3" v-model="sizeForm.desc"></el-input>

@@ -18,10 +18,10 @@
         <template v-if="isLogin">
           <span class="red" @click="quit">退出</span>
           <span class="sep"></span>
-          <nuxt-link to="/personal" class="red" style="color: #888;">个人中心</nuxt-link>
+          <nuxt-link to="/personal/jingjiajilu" class="red" style="color: #888;">个人中心</nuxt-link>
           <span class="sep"></span>
           <nuxt-link to="/seller/commitSell" v-if="!isSeller" class="red" style="color: #888;">申请开店</nuxt-link>
-          <nuxt-link to="/seller" v-else class="red" style="color: #888;">卖家中心</nuxt-link>
+          <nuxt-link to="/seller/selling" v-else class="red" style="color: #888;">卖家中心</nuxt-link>
         </template>
         <span class="sep"></span>
         <span class="text">帮助中心</span>

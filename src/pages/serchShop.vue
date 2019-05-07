@@ -312,10 +312,10 @@ export default {
         this.goodsList = rst;
       } catch (e) {
         loading.close();
-        this.$message({
-          showClose: true,
-          message: "数据加载失败"
-        });
+        // this.$message({
+        //   showClose: true,
+        //   message: "数据加载失败"
+        // });
       }
     },
     onShowSearch() {

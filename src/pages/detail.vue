@@ -411,7 +411,7 @@ export default {
             this.tableData2 = res;
             this.goodsDetail.price = this.tableData2[0].myPrice;
           });
-      }, 10000);
+      }, 3000);
     },
     closeTab() {
       this.showAddrSel = false;

@@ -34,7 +34,7 @@
             </div>
             <div class="order-item-box">
               <viewer v-if="pItem.commentPic1"
-                      :height="'60px'" :width="'60px'" :src="getPicture+'5cb2fb1a88ccd.png'"/>
+                      :height="'60px'" :width="'60px'" :src="getPicture+pItem.commentPic1"/>
               <viewer class="view" v-if="pItem.commentPic2"
                       :height="'60px'" :width="'60px'" :src="getPicture+pItem.commentPic2"/>
               <viewer class="view" v-if="pItem.commentPic3"
