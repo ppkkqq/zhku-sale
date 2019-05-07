@@ -231,3 +231,4 @@ export const addRegister = localhost + "/addRegister.php";
 export const isSeller = localhost + "/isSeller.php";
 export const addSellerPic = localhost + "/addSellerPic.php";
 export const commitSeller = localhost + "/commitSeller.php";
+export const cancelSale = localhost + "/cancelSale.php";
