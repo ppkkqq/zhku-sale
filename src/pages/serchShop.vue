@@ -26,7 +26,7 @@
       <ul class="navList-box">
         <li><nuxt-link to="/" class="nav-link">首页</nuxt-link></li>
         <li><nuxt-link to="/serchShop?day=today&page=1" class="activeA nav-link">电子商城</nuxt-link></li>
-        <li><nuxt-link to="/about" class="nav-link">关于我们</nuxt-link></li>
+        <li><nuxt-link to="#" class="nav-link">关于我们</nuxt-link></li>
       </ul>
     </div>
     <div class="result">

@@ -67,7 +67,6 @@
       <div class="container">
         <el-tabs v-model="activeTab" type="card" @tab-click="handleClick($event)">
           <el-tab-pane label="首页" name="0"></el-tab-pane>
-          <el-tab-pane label="医康养游" name="2"></el-tab-pane>
           <el-tab-pane label="电子商城" name="1"></el-tab-pane>
           <el-tab-pane label="关于我们" name="3"></el-tab-pane>
         </el-tabs>
@@ -136,7 +135,7 @@ export default {
       let type = "";
       if (/^\/$/i.test(path)) type = "0";
       if (/^\/shop\//i.test(path)) type = "1";
-      if (/^\/about/i.test(path)) type = "3";
+      if (/^\/#/i.test(path)) type = "3";
       this.activeTab = type;
       return;
     },
@@ -150,15 +149,12 @@ export default {
           break;
         case "1":
           this.$router.push({
-            path: "/serchShop"
+            path: "/serchShop?day=today&page=1"
           });
-          break;
-        case "2":
-          this.open("http://trip.gtytong.com/");
           break;
         case "3":
           this.$router.push({
-            path: "/about"
+            path: "#"
           });
           break;
       }
