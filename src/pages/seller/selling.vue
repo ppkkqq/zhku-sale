@@ -38,7 +38,7 @@
             </div>
             <div class="order-item-box">
               <p class="text">
-                <nuxt-link class="href-class" :to="'/personal/judge/'+pItem.goodid" v-if="pItem.lasttime > currentTime && pItem.starttime < currentTime">取消拍卖</nuxt-link>
+                <span class="href-class" @click="cancelSale(pItem.goodid)" v-if="Date.parse(pItem.lasttime) < currentTime || Date.parse(pItem.starttime) > currentTime">取消拍卖</span>
                 <span v-else>无法取消</span>
               </p>
             </div>
@@ -46,7 +46,7 @@
         </div>
         <div class="page-wrap">
           <el-pagination
-            @current-change="getMyOrders"
+            @current-change="getMySales"
             :current-page.sync="currentPage"
             :page-size="pageSize"
             layout="prev, pager, next"
@@ -67,7 +67,8 @@ import {
   addCart,
   getTourismOrderList,
   getProductList,
-  getPicture
+  getPicture,
+  cancelSale
 } from "@/const/api";
 import { resolveImg } from "@/utils";
 export default {
@@ -92,18 +93,20 @@ export default {
     }
   },
   mounted() {
-    this.getMyOrders();
+    this.getMySales();
   },
   methods: {
-    async cancelOrder(orderId) {
-      this.$confirm("是否确认取消")
+    cancelSale(goodid) {
+      this.$confirm("是否确认取消该拍卖")
         .then(() => {
-          this.$store
-            .dispatch("orders/cancelOrder", orderId)
+          this.$axios
+            .$post(cancelSale, {
+              goodid: goodid
+            })
             .then(rst => {
-              if (rst && rst.result == "true") {
-                this.$message.success("订单取消成功！");
-                this.getMyOrders();
+              if (rst && rst == "success") {
+                this.$message.success("取消成功！");
+                this.getMySales();
               }
             })
             .catch(() => {});
@@ -112,12 +115,28 @@ export default {
         })
         .catch(() => {});
     },
-    async getMyOrders() {
+    // async cancelOrder(orderId) {
+    //   this.$confirm("是否确认取消")
+    //     .then(() => {
+    //       this.$store
+    //         .dispatch("orders/cancelOrder", orderId)
+    //         .then(rst => {
+    //           if (rst && rst.result == "true") {
+    //             this.$message.success("订单取消成功！");
+    //             this.getMySales();
+    //           }
+    //         })
+    //         .catch(() => {});
+    //
+    //       done();
+    //     })
+    //     .catch(() => {});
+    // },
+    async getMySales() {
       const rst = await this.$axios.$get(
         `${getProductList}?userid=${this.user}&page=${this.currentPage}`
       );
       if (rst != "error" && rst != "noProduct") {
-        console.log(12345, rst);
         this.productList = rst.list;
         this.total = rst.total;
       }
@@ -356,6 +375,7 @@ export default {
         }
 
         .href-class {
+          cursor: pointer;
           color: #999;
         }
       }
